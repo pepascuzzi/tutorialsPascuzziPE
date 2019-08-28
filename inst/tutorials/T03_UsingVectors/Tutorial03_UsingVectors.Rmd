@@ -1,0 +1,519 @@
+---
+title: "Using Vectors"
+author:
+  name: Pete E. Pascuzzi
+  affiliation: Purdue University
+runtime: shiny_prerendered
+output: learnr::tutorial
+---
+
+```{r setup, include=FALSE}
+ar_value <- scan("ar_value.txt", sep="\t")
+ar_study <- scan("ar_study.txt", what="character", sep="\t")
+ar_tissue <- scan("ar_tissue.txt", what="character", sep="\t")
+ar_tissue <- as.factor(ar_tissue)
+library(learnr)
+library(RColorBrewer)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(fig.width=8)
+knitr::opts_chunk$set(fig.height=8)
+```
+
+## Introduction  
+
+In this tutorial, you will use **vectors** to analyze cancer gene expression download from [cBioPortal](http://www.cbioportal.org/){target="_blank"}.  The data is gene expression for the gene that encodes the androgen receptor (AR).  
+
+This tutorial builds on the earlier tutorial on data types.  Some information will be repeated to reinforce earlier concepts.  The goal of this tutorial is to demonstrate how even a simple **object** like a **vector** can be used for sophisticated analyses or data explorations.  
+
+## Learning Objectives
+
+* Provide a simple definition of an R object.
+* Provide a simple definition of an R environment.
+* Extract data from **vectors** using "old school" R functions and operators.
+* List some differences between a **factor** and a **vector**.
+* Use `dotchart` to make a simple plot.  
+
+## Objects and Environments
+
+**R** is an object-oriented programming language.  From a computer science perspective, this has a technical meaning.  From a practical perspective, this means that **R** can represent data in very complex ways, from a simple table of locations and temperatures, to complete genome-scale experiments in the life sciences. 
+
+Given that **R** generally stores **objects** in memory, these **objects** can accumulate and require a lot of memory.  Try to remember this as you progress with **R**.  
+
+In contrast, **Unix** programs, while often memory intensive, process data from files, and save the result to new files. 
+
+How do you determine the **R objects** that you have in memory?  The **R function** `ls` will list the **objects** that **R** has stored in memory. 
+
+**NOTE: DO NOT CONFUSE R `ls()` AND UNIX `ls`.  THE FIRST LISTS OBJECTS IN MEMORY WHILE THE LATTER LISTS FILES IN YOUR CURRENT DIRECTORY.**
+
+**R** keeps track of the **objects** in memory using **environments**.  Even a shallow discussion of **environments** is beyond the scope of this tutorial.  Just be aware that when you use `ls` you are listing the **objects** in your **working environment**.  You will have other **objects** that are available to you in other **environments**.
+
+```{r q24, exercise=TRUE, exercise.startover=TRUE}
+ls()
+```
+
+You should see three **objects**, `ar_study`, `ar_tissue` and `ar_value`.  These are **objects** that contain data.  These **objects** were created by a hidden code chunk when you started the tutorial.  
+
+You will not see any **objects** created in previous code chunks because they were created in a different **environment**.  Do not worry if you find the idea of **environments** confusing.  It will become clearer to you as you progress with **R**.  
+
+## Vectors
+
+We covered **vectors** in some detail in a previous tutorial.  We will recap some of that information here.  
+
+The most basic **object** in **R** is the **vector**.  A **vector** is a linear (one-dimensional) collection of values all of the same data type.  The most common **classes** or **modes** of **vector** are **character**, **numeric**, **integer**, and **logical**. 
+
+In this lesson, you will work with three **classes** of **vector**, **character**, **numeric** and **logical**.  You will also work with **factors**, an **object** that is similar to a **character** **vector**, and can be manipulated much like a **vector**. 
+
+You can determine the number of values stored in a **vector** with the `length`.  
+
+```{r q28, exercise=TRUE, exercise.startover=TRUE}
+length(ar_study)
+```
+
+The length of `ar_study` is 30.  This means that there are 30 **elements** in this **vector**.  Importantly, the **elements** in a **vector** also have a position, and they can have a **name** as well.  
+
+This **vector** is small enough that you can display the contents in the tutorial.  A simple way to display the contents of an **object** is to simply enter its **name**.
+
+```{r q29, exercise=TRUE, exercise.startover=TRUE}
+ar_study
+```
+
+You should see 30 **character** strings describing The Cancer Genome Atlas cancer studies.  Each string is preceded by an **integer** in square brackets.  This **integer** gives you the **index** or **position** for that **character** string in the **vector**.
+
+## Extracting Elements
+
+The **square brackets**, `[]`, are the **extraction operator** for **R**. They allow you to extract specific values from **R objects**.  This is sometimes called **indexing**.  More properly, the process is called **extraction**, and you use **indices** to do this.  You can **extract** with several types of **indices** including by position, by name, or with **logical vectors** or **expressions**.  
+
+In the cell below, we can extract the tenth value in `ar_study`.  In this case, the integer 10 is the **index**.  
+
+```{r q30, exercise=TRUE, exercise.startover=TRUE}
+ar_study[10]
+```
+
+You are not limited to a single **integer** for **extraction**.  You can create a **vector** and use it as the **index**.  We can use the combine **function**, `c`, to create a **vector** to **extract** specific information from **ar_study**. 
+
+First, let's look at the help page for `c`.
+
+```{r q31, exercise=TRUE, exercise.startover=TRUE}
+?c
+```
+
+The **combine** **function** has two **arguments**, `...` and `recursive`.  The default value for `recursive` is `FALSE`, and that is what we need here.  Later, we may set `recursive=TRUE` when we work with **lists**.
+
+The `...`, 'three dots' or, more properly, **ellipsis argument** allows a **function** to accept a variable number of **arguments**.  This makes perfect sense for `c` because it allows a user to **combine** many values to make a **vector** of almost any length (there is an upper limit). 
+
+Remember, **vectors** must contain data of the same **type**.  If you try to **combine** data of different types into a **vector**, they will be converted to the best compatible common type. 
+
+See what happens when you try to generate a mixed **vector**.
+
+```{r q32, exercise=TRUE, exercise.startover=TRUE}
+c(1, 10.01, TRUE, "maybe")
+```
+
+The displayed **vector** has quotes around every value indicating that this is a **character** **vector**. 
+
+Now, we are ready to make an **integer** **vector** to **index** `ar_study`.  We want to **extract** the values at positions 1, 3, 7 and 13.
+
+```{r q33, exercise=TRUE, exercise.startover=TRUE}
+my_index <- c(1, 3, 7, 13)
+my_index
+```
+
+Now we can **extract** the desired data.
+
+```{r q34-setup, include=FALSE}
+my_index <- c(1, 3, 7, 13)
+
+```
+
+```{r q34, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q34-setup"}
+ar_study[my_index]
+```
+
+Notice that the displayed position indices for the extracted values is different from their indices in `ar_study`.  The reason for this is that you have essentially created a new **vector** with only four elements.  
+
+You can also omit specific values from a **vector** by using a negative **index**.  
+
+```{r q35, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q34-setup"}
+ar_study[-my_index]
+```
+
+You can **extract** values in any order that you wish.  In fact, this is one way that you can **sort** data in **R**.
+
+```{r q36, exercise=TRUE, exercise.startover=TRUE}
+ar_study[c(30, 20, 10, 1)]
+```
+
+Be careful when **extracting** data because you can try to **extract** data that does not exist! 
+
+```{r q37, exercise=TRUE, exercise.startover=TRUE}
+ar_study[50]
+```
+
+This returns the special value, `NA`, for **Not Available** or missing values.  If `NAs` exist in your data, and they often do, you need to take special care of how they are treated.  
+
+## Character String Length
+
+Another important point about **character** **vectors**, do not confuse the **length** of a **character** **vector** with the number of **characters** in each **character** string in that **vector**!
+
+You can determine the number of **characters** in a **character** string with `nchar`. 
+
+Determine the number of **characters** in the tenth value of `ar_study`.
+
+```{r q38, exercise=TRUE, exercise.startover=TRUE}
+nchar(ar_study[10])
+```
+
+A great feature of **R** is that many **functions** are **vectorized**, they can accept a **vector** as input and return a **vector** as output. 
+
+Determine the number of **characters** for every value in **ar_study**.
+
+```{r q39, exercise=TRUE, exercise.startover=TRUE}
+nchar(ar_study)
+```
+
+You should see 30 **integer** values ranging from 27 to 84. 
+
+We will use `ar_study` again.  Let us move on to the other **objects**. 
+
+## Numeric Vectors  
+
+Determine the **class** of `ar_value`.
+
+```{r q40, exercise=TRUE, exercise.startover=TRUE}
+class(ar_value)
+```
+
+The **object** `ar_value` is a **numeric vector** that contains the median expression values for the AR gene in each TCGA cancer study.  This expression value is determined by a TCGA pipeline.  It is an absolute measure of expression, not a fold-change.  However, it has been log2 transformed. 
+
+Display `ar_value`.
+
+```{r q41, exercise=TRUE, exercise.startover=TRUE}
+ar_value
+```
+
+This provides an impression of the data, e.g. it ranges from roughly zero to ten, and, given that we have 8 decimel places, you might assume the data is quite precise (probably not true). 
+
+When I work with a quantitative variable, I always do some data exploration.  **R** has many **functions** to facilitate this. 
+
+## Summary Function 
+
+We can use `summary` to get summary statistics.  
+
+```{r q42, exercise=TRUE, exercise.startover=TRUE}
+summary(ar_value)
+```
+
+The **function** `summary` provides a good deal of information, including the minimum and maximum values, as well as the mean and median.  The `min`, `max`, `mean` and `median` **functions** can also be used to calculate these summary statistics. 
+
+Use caution with `summary` because it is intended to provide a quick summary of the data.  As such, it is not always precise.  By default, it limits the number of decimel places it will display! 
+
+Get a more precise value for the mean of `ar_value` with `mean`.
+
+```{r q43, exercise=TRUE, exercise.startover=TRUE}
+ar_mean <- mean(ar_value)
+ar_mean
+```
+
+The summary of `ar_value` suggests that the mean is 3.94200, whereas the **function** `mean` indicates that it is 3.941892.  In fact, neither are exactly correct.  There can be a difference between the way that **R** displays data and how it stores data. 
+
+We can use the `print` function and specify `digits=22` to display even more decimel places.  
+
+```{r q44-setup, include=FALSE}
+ar_mean <- mean(ar_value)
+```
+
+```{r q44, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q44-setup"}
+print(ar_mean, digits=22)
+```
+
+Now we get a more precise value of `ar_mean`.  The issue is that **R** stores **ar_mean** to many more digits than it will typically display.  
+
+This example illustrates that you need to use caution with **numeric** values when programming with **R**.  Values will be rounded for display purposes, but they may be stored to many more digits!  Be cautious when programming with **numeric vectors** because all programming languages have issues with **floating point** (decimel) operations.  
+
+Back to the exploration of **ar_value**.  We have summary statistics, but it is always a good idea to visualize your data. 
+
+## Data Visualization
+
+One strength of **R** is data visualization.  There are several **packages** that you can use including base **graphics**, **lattice**, **plotly** and **ggplot2**.  In this course, we will generally use **ggplot2**, but it is important that you have some experience with the base **graphics** package.  
+
+Make a simple plot of `ar_value` with the `plot` function.  
+
+```{r q47, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8}
+plot(ar_value)
+```
+
+The **function** `plot` is **generic R function** that has many different **methods**.  What this means is that the output of `plot` will depend on the **class** of the input object.  We passed a **numeric vector** to `plot`.  By default, **R** will use `ar_value` as the dependent variable, and the **position** in the **vector** as independent variable to produce an x-y scatterplot.
+
+This plot is not particularly informative, and we would need to play with the dozens of **arguments** and **parameters** that can be used with `plot` to produce something better. 
+
+Fortunately, **R** has many plot types.  The summary level data in `ar_value` is suitable for a **Cleveland Dot Plot**, a simple plot that can cleanly illustrate the distribution of a continuous variable with respect to a categorical variable.  In our case, the mean AR expression value across the various cancer studies.  
+
+See the help menu for `dotchart` for more information.  
+```{r q48help, exercise=TRUE, exercise.startover=TRUE}
+?dotchart
+```
+
+Let's try `dotchart` using only the default values.  
+
+```{r q48, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8}
+dotchart(x=ar_value)
+```
+
+At this point, this is plot is very similar to the previous plot.  The big difference is that the x and y axes are swapped.  In addition, dashed lines are included to help a viewer trace a point to its label on the y-axis.  However, we have no labels, yet.  
+
+We can use the **character strings** in `ar_study` as `labels`, but they need to be shorter.  We can use `substr` to create labels from the first 15 characters in each string.  In addition, we will add a `main` title to the plot.  
+
+```{r q49, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8}
+ar_labels <- substr(ar_study, start=1, stop=15)
+dotchart(x=ar_value, labels=ar_labels, main="AR Gene Expression", cex=0.8)
+```
+
+We now have a clearly labeled plot.  The **argument** `cex=0.8` adjusts the size of the plot labels to make them smaller. However, depending on the size of your display, the labels may still overlap. You can try a smaller value for `cex` to adjust this. 
+
+## Factors 
+
+You may have noticed that `dotchart` has a `groups` argument.  We have an **object** named `ar_tissue` with this information, but we need additional details.  Let's display `ar_tissue` to look at the data.  
+
+```{r q51a, exercise=TRUE, exercise.startover=TRUE}
+ar_tissue
+```
+
+At first glance, this appears to be a **character vector**, but `ar_tissue` has additional information--it has 11 Levels, indicating the `ar_tissue` is a **factor**.  
+
+```{r q51, exercise=TRUE, exercise.startover=TRUE}
+class(ar_tissue)
+```
+
+Go to the help page for **factor**.
+
+```{r q52, exercise=TRUE, exercise.startover=TRUE}
+?factor
+```
+
+A **factor** is an **object** to store categorical data. Categorical data is characterized by having only a limited number of valid values or **levels**.  Simple examples include undergraduate student standing (freshman, sophomore, junior, or senior), states in the United States or tissues in the body.  For some **factors**, the **levels** have an inherent order, student standing for example.  These are called **ordinal variables**.  In other cases, there might not be a clear progression across the **levels**.  Tissues in the body is a good example.  These are called **nominal variables**.  
+
+The purpose of **factors** is that it allows you to group data easily and consistently.  In our example, we want to group the cancer studies by tissue of origin. 
+
+The most common way to create a **factor** is with `as.factor` on an existing **vector** (usually of **class character**). 
+
+However, it only makes sense to convert a **vector** to a **factor** if you have clear categories in the data.  For example, it does not make sense to convert **ar_study** to a **factor** because each study is a unique value. 
+
+**Factors** behave very much like **vectors**, but there are important differences.  For example, compare the result when you display the contents of `ar_study` and `ar_tissue`. 
+
+```{r q53, exercise=TRUE, exercise.startover=TRUE}
+ar_study
+```
+
+```{r q54, exercise=TRUE, exercise.startover=TRUE}
+ar_tissue
+```
+
+Note that the values of `ar_study` are flanked by quotes.  This is always true for **character** strings. 
+The values for `ar_tissue` are not flanked by quotes.  In addition, the **levels** for `ar_tissue` are partially listed.  The **levels** for a **factor** are the only allowed values. 
+
+Now that we understand `ar_tissue`, we can use it as a grouping variable in our **dotchart**. 
+
+```{r q55, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8}
+ar_labels <- substr(ar_study, start=1, stop=15)
+dotchart(x=ar_value, labels=ar_labels, groups=ar_tissue, main="AR Gene Expression", 
+         cex=0.8, xlab="RNAseq RSEM Value (log2)")
+
+```
+
+This chart provides a more organized view of AR expression.  However, we could do better by reordering the studies by tissue AND mean AR expression level.  To do this we need to do two things: calculate the mean AR expression by tissue and recreate `ar_tissue` with the **level** order determined by the mean AR expression.  
+
+## tapply
+
+A common task in data analysis is to summarize variables with respect to a grouping variable, e.g. what is the score on a test with respect to student class.  The function `tapply` allows you to do this.  The help page for `tapply` is pretty cryptic. A more concise explanation, still cryptic, is that `tapply` will **apply** a specified function to the values in one **vector** that can be grouped by the values in a second **vector** or **factor**.  The mnemonic to remember this is "type apply" where type refers to a grouping variable. 
+
+In our case, we need to summarize AR expression with respect to tissue of origin.  We have the **objects** that we need, `ar_value` and `ar_tissue`.  Importantly, the values in the **objects** are in the same order.  Check the help page for `tapply` for the **arguments**.  
+
+```{r q55a, exercise=TRUE, exercise.startover=TRUE}
+?tapply
+```
+
+The help page indicates that we need to supply three **arguments** with `tapply`, `X`, `INDEX` and `FUN`.  The first is the data that you want to use with the calculations, `INDEX` is the grouping variable (the index that is used to extract the values), and `FUN` is the function that you want to apply.  The **argument**, `na.rm=TRUE` is included so that any missing values will be dropped from the calculation.  This is important because `mean` will return `NA` as the mean if any missing values occur.  
+
+```{r q55b, exercise=TRUE, exercise.startover=TRUE}
+tissue_mean <- tapply(X=ar_value, INDEX=ar_tissue, FUN=mean, na.rm=TRUE)
+tissue_mean
+```
+
+The result is a **numeric vector** of expression values with the tissue of origin shown as **names** for the **elements**.  Currently, the order of the **vector** is alphabetical by tissue name.  We can change this with `sort`.  Note, you need to specify `decreasing=TRUE` because we want largest to smallest.  
+
+```{r q55c-setup, include=FALSE}
+tissue_mean <- tapply(X=ar_value, INDEX=ar_tissue, FUN=mean, na.rm=TRUE)
+```
+
+```{r q55c, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q55c-setup"}
+tissue_mean <- sort(tissue_mean, decreasing=TRUE)
+tissue_mean
+```
+
+Now, the tissue names are ordered by decreasing AR expression.  We can use this to recreate `ar_tissue` with the **levels** sorted by AR expression.  
+
+First, we need to create a **character vector** that has the tissues in decreasing order of AR expression.  
+
+```{r q55d-setup, include=FALSE}
+tissue_mean <- tapply(X=ar_value, INDEX=ar_tissue, FUN=mean, na.rm=TRUE)
+tissue_mean <- sort(tissue_mean, decreasing=TRUE)
+```
+
+```{r q55d, exercise=TRUE, exercise.startover=TRUE}
+tissue_levels <- names(tissue_mean)
+tissue_levels
+```
+
+Now, we can use this **vector** to specify the levels and order for the **factor**, `ar_tissue`.  
+
+```{r q55e-setup, include=FALSE}
+tissue_mean <- tapply(X=ar_value, INDEX=ar_tissue, FUN=mean, na.rm=TRUE)
+tissue_mean <- sort(tissue_mean, decreasing=TRUE)
+tissue_levels <- names(tissue_mean)
+```
+
+```{r q55e, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q55e-setup"}
+ar_tissue <- factor(ar_tissue, levels=tissue_levels)
+ar_tissue
+```
+
+It may seem odd that we can simply recreate `ar_tissue` using `ar_tissue`, but **recursive** operations like this are common in programming.  However, use them with caution because there is no "undo" button.  In addition, some **recursive expressions** can create errors if you inadvertantly run them more than once.  
+
+Now, we can repeat the `dotchart`.  
+
+```{r q55f-setup, include=FALSE}
+ar_labels <- substr(ar_study, start=1, stop=15)
+tissue_mean <- tapply(X=ar_value, INDEX=ar_tissue, FUN=mean, na.rm=TRUE)
+tissue_mean <- sort(tissue_mean, decreasing=TRUE)
+tissue_levels <- names(tissue_mean)
+ar_tissue <- factor(ar_tissue, levels=tissue_levels)
+```
+
+```{r q55f, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8, exercise.setup="q55f-setup"}
+dotchart(x=ar_value, labels=ar_labels, groups=ar_tissue, main="AR Gene Expression", 
+         cex=0.8, xlab="RNAseq RSEM Value (log2)")
+```
+
+This version of the plot is the more informative because it does suggest that there is a correlation between tissue of origin and mean AR expression.  
+
+## Filtering with Logical Vectors  
+
+Remember **logical vectors**?  You can use a **logical vector** to **index** the cancer studies based on AR expression level.  We can define high AR expression as any study where AR expression is 6 or greater.   Based on the `summary` function, less than 25% of samples have values higher than this.   
+
+```{r q57, exercise=TRUE, exercise.startover=TRUE}
+high_ar <- ar_value >= 6
+high_ar
+```
+
+You should see that we now have a TRUE or FALSE evaluation of the `ar_value >= 6` for every cancer study. 
+Extract the cancer studies with high AR expression using `high_ar` as in index.
+
+```{r q58-setup, include=FALSE}
+high_ar <- ar_value >= 6
+```
+
+```{r q58, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q58-setup"}
+ar_study[high_ar]
+```
+
+We can explore the relationship between high AR expression and tissue of origin with `table`. 
+
+```{r q59, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q58-setup"}
+table(ar_tissue, high_ar)
+```
+
+This table suggests that high AR expression is only associated with cancers from certain tissues.  However, the data is not sufficient to make any strong assertions. 
+
+## Looking Ahead  
+
+An important point of this lesson is that each of the **objects** that we used in this lesson are all in the same order, i.e. the eleventh value in each object contains data for the same cancer study.  
+
+Certain **function**s such as `sort` and `order` can change the position of **elements** in a **vector**.  If done carelessly, your **vectors** are no longer parallel, e.g. if we `sort` `ar_value` by AR expression, how can we `sort` the corresponding vector `ar_study`?
+
+This potential problem points to the need for an object that can combine a group of parallel **vectors** into columns to form a data structure similar to an Excel worksheet.  **Tibbles** and **data frames** solve this problem and will be covered in the next tutorial.  
+
+## Quiz
+Time for a short quiz.  Use the help menu or try various answers as much as you want.  There is no penalty for multiple attempts.  If you are stuck, click the `Hints` button to get progressive hints.  The last hint is the answer!
+
+### Question 1
+#### Enter the expression that will **extract** the values at positions 5, 25, and 15 from `ar_study` in that order!
+
+
+```{r quiz1, exercise=TRUE, exercise.startover=TRUE}
+#Enter your code below.
+
+```
+
+```{r quiz1-hint-1}
+ar_study[]
+```
+
+```{r quiz1-hint-2}
+ar_study[c()]
+```
+
+```{r quiz1-hint-3}
+ar_study[c(5, 25, 15)]
+```
+
+### Question 2
+#### How long is the **vector** that results from `ar_value[-c(1, 11, 21, 31)]`?
+
+```{r quiz2, exercise=TRUE, exercise.startover=TRUE}
+#Enter your code here.
+```
+
+```{r quiz2-hint-1}
+length()
+```
+
+```{r quiz2-hint-2}
+length(ar_value[-c(1, 11, 21, 31)])
+```
+
+```{r quiz2-hint-3}
+#note the asnwer is not 30 - 4 because there is no position 31 in ar_value
+```
+
+### Question 3
+#### Not all **vectors** are sensible candidates for **factors**.  How many **levels** would there be if you converted `ar_study` to a **factor**?
+
+```{r quiz3, exercise=TRUE, exercise.startover=TRUE}
+#Enter your code here.
+```
+
+```{r quiz3-hint-1}
+length()
+```
+
+```{r quiz3-hint-2}
+length(ar_study)
+##or
+ar_study <- as.factor(ar_study)
+length(levels(ar_study))
+```
+
+### Question 4
+#### How many cancer studies have AR expression less than or equal to one?
+
+```{r quiz4, exercise=TRUE, exercise.startover=TRUE}
+#Enter your code here
+```
+
+```{r quiz4-hint-1}
+table()
+```
+
+```{r quiz4-hint-2}
+table(ar_value)
+```
+
+
+```{r quiz4-hint-3}
+table(ar_value <= 1)
+```
+
+
+
+

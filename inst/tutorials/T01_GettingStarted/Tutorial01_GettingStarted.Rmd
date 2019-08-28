@@ -1,0 +1,333 @@
+---
+title: "Getting Started"
+author:
+  name: Pete E. Pascuzzi
+  affiliation: Purdue University
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, eval=TRUE, echo=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+This tutorial will provide a basic introduction to working with R and RStudio.  R is an open source programming language that is becoming increasingly popular in data science.  Need convincing?  See this [Computerworld article](https://www.computerworld.com/article/2497143/business-intelligence/business-intelligence-beginner-s-guide-to-r-introduction.html){target="_blank"}.
+
+This tutorial is written with the **learnr** **package**.  The tutorial will alternate between text chunks that you should read and code chunks that you need to run.  Code chunks will always have two buttons in the header, a `Start Over` button that will reset the code, and a `Run Code` button that will run the code in the chunk.  Some chunks will require you to enter code.  These chunks will also have a `Hint` button.  Click this button to get progressive hints.  The last hint is generally the answer.  
+
+You can skip from section to section using the menu in the left panel.  You can reset the entire tutorial by clicking on `Start Over` at the bottom of the left panel.  
+
+## Learning Objectives
+
+* Use R to perform arithmetic calculations.
+* Create simple R **objects**.
+* List the parts of an R **function**.
+* Learn to use the R help system to find **arguments** and default values for **functions**.
+* Locate specific information within an R help page.
+
+## Arithmetic  
+
+Let's get started.  **R** is an interpreted computer language, so you can use **R** like a calculator.  Run the chunk below to perform a simple calculation with an arithmetical **expression**.  An **expression** is a "sentence" of computer code that will be **evaluated** by the **R interpreter** to produce a result.  
+
+```{r q1, exercise=TRUE, exercise.startover=TRUE}
+1 + 1
+```
+
+What happens if you enter an incomplete **expression**?  Run the cell below to find out.  
+
+```{r q2, exercise=TRUE, exercise.startover=TRUE}
+1 + 
+```
+
+In this tutorial, you get an error.  If you use **R** from the command line, the **R** app or **RStudio**, your **R** prompt will change from the greater than sign, `>`, to a plus sign, `+`.  This indicates that **R** is waiting for additional input.  More on this when we use **RStudio** directly.  
+
+Back to arithmetic, like a calculator, arithmetic operations are executed in order of precedent.  This can be controlled with **parentheses**.  
+
+```{r q3, exercise=TRUE, exercise.startover=TRUE}
+1 + 1 * 2
+```
+
+Compare the above result to the following cell.
+
+```{r q4, exercise=TRUE, exercise.startover=TRUE}
+(1 + 1) * 2
+```
+
+As you can see, the **parentheses** change the result significantly. Do not forget these simple rules in your calculations! 
+
+Formulas can become quite complicated, and it can be easy to lose track of your **parentheses**. 
+
+```{r q5, exercise=TRUE, exercise.startover=TRUE}
+((1 + 1) * (2 - 1))/(10 - 2)
+```
+
+A better way to do such calculations, especially if you need to reuse the formula, is to create **objects** and perform the calculations stepwise.  To do this, we must create **objects** and **assign** value(s) to them.  
+
+## Creating Objects  
+
+The following cell will create an **object** named `x` with the value `2`.  An **object** is an **R** construct that contains data or information.  There are many **classes** of **R object**.  Some of the most common are **vectors**, **data frames** and **functions**.  
+
+There are two lines of code in the cell below.  The first line creates `x`, and the second line displays `x`.    Note that the value `2` is the result of an evaluated **expresssion**, `1 - 1`.
+
+```{r q6, exercise=TRUE, exercise.startover=TRUE}
+x <- 1 + 1
+x
+```
+
+The **assignment operator**, `<-`, is used to **assign** a value or values to an **object**.  If the **object** already exists, the new value will be **assigned**.  If the **object** does not exist, it will be created.  
+
+**NOTE - IT IS VERY EASY TO ACCIDENTALLY OVERWRITE AN OBJECT WITH A NEW VALUE! **
+
+Create an **object** named `y` and **assign** the value of `2 - 1` to it, and display `y`..
+
+```{r q7, exercise=TRUE, exercise.startover=TRUE}
+y <- 2 - 1
+y
+```
+
+Write the **expression** in the cell below that will create an **object** named `z` that has the value of `10 - 2` and display `z`.  
+
+```{r q8, exercise=TRUE, exercise.startover=TRUE}
+
+```
+
+```{r q8-hint-1}
+z 
+```
+
+```{r q8-hint-2}
+z <- 
+```
+
+```{r q8-hint-3}
+z <- 10 - 2
+```
+
+```{r q8-hint-4}
+z <- 10 - 2
+z
+```
+
+Complete the previous calculation, `((1 + 1) * (2 - 1))/(10 - 2)` by running the cell below.
+
+
+```{r q9-setup, include=FALSE}
+x <- 1 + 1
+y <- 2 - 1
+z <- 10 - 2
+```
+
+```{r q9, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q9-setup"}
+x * y / z
+```
+
+## Functions 
+
+**R** has many built in mathematic functions. 
+
+You can compute the logarithm for any number and base using the `log` function.
+
+```{r q10, exercise=TRUE, exercise.startover=TRUE}
+log(x=10, base=10)
+```
+
+This is our first typical **R function**.  **Functions** are essentially small programs that perform a specific task(s). 
+
+From a user's perspective, **R functions** have three basic parts - a **name**, **arguments**, and **computer code**. 
+
+The **name** of the `log` **function** is `log`. 
+
+The **arguments** for the `log` **function** are `x` and `base`. 
+
+IN **R** CODE, **FUNCTIONS** ARE ALWAYS FOLLOWED BY **PARENTHESIS** THAT ENCLOSE THE **ARGUMENTS** PASSED TO THE **FUNCTION**.  THE **PARENTHESIS** ARE REQUIRED EVEN IF NO **ARGUMENTS** ARE PASSED!  MULTIPLE **ARGUMENTS** TO A **FUNCTION** ARE SEPARATED BY **COMMAS**. 
+
+If you forget to follow a **function** with parenthesis, **R** will display the **R code** for that **function**.  Most users will not have a need to display or alter the **R code** for a **function**. 
+
+The `log` **function** has two **arguments**, `x` and `base`.  **Values** are assigned to an **argument** with a single equals sign, `=`.  The **arguments** are separated by **commas**.  If you forget the **commas**, **R** will produce an **error**.  **PAY ATTENTION TO SYNTAX!** 
+
+Some **arguments** for a **function** may have default values, values that were preset by the person that wrote the **function**.  If the default value is fine for your purpose, you do not need to explicitly assign a value to that **argument**. 
+
+For example, the default value of `log` for `base` is base `e`.  If you want the natural log, you do not need to assign a value **base**.
+
+```{r q11, exercise=TRUE, exercise.startover=TRUE}
+log(x=2.71828182845905)
+```
+
+**Arguments** that do not have default values must have values **assigned** when you use that  **function**.  For example, you must assign a value to `x` when you use `log` because you cannot take the log of nothing.  **R** will produce an **error**.  
+
+```{r q12, exercise=TRUE, exercise.startover=TRUE}
+log()
+```
+
+This **error message** is pretty easy to understand (often they are quite cryptic). 
+
+When you **assign** a **value** to an **argument** in a **function** call, you must use a single equals sign, `=`.  Some people like to include spaces before and after the `=`, but I prefer to keep my code more compact. 
+
+**NOTE - GENERALLY R IS NOT SENSITIVE TO SPACES AND USE OF SPACES IS OFTEN A QUESTION OF CODING STYLE**. 
+
+How do you determine the **arguments** for a **function** and the default values, if any? 
+
+## Help 
+
+You can find help for **functions** using the `help` function and supporting documents.  There are several ways to access the help documents.  When you work in **RStudio**, there is an entire window dedicated to the **R** help system.
+
+In this tutorial, you can still access the **R** help documents with specific **functions** such as `help` and `help.search`.  Run the cell below to open the help documents for `log`.  On this system, the help page can be rendered as plain text only.  When working directly in **RStudio**, the help pages will appear in the help pane in HTML format.  
+
+```{r q13, exercise=TRUE, exercise.startover=TRUE}
+help(log)
+```
+
+The help page for `log` should appear as a window in the tutorial.  
+
+A help page will be broken into several sections such as **Description**, **Usage**, **Arguments**, **Details**, **Value**, **Author(s)**, **See Also** and **Examples**. 
+
+The **Description** section will provide a brief explanation of the **function** or **package**. 
+
+The **Usage** section will show a generic example of how the **function** should be used.  All **arguments** for that **function** should be shown.  If there are default values for any of these **arguments**, the default values will be shown as well. 
+
+The **Arguments** section will show all **arguments** that can be used with the **function** with additional details about the type of data that is expected. 
+
+The **Details** section of a help page should provide an extended discussion of how the **function** works.  The quality of this section varies widely from **function** to **function**, depending on the author.  Usually, it is quite clear and detailed.  Unfortunately, some authors use a lot of jargon and provide little explanation. 
+
+The **Value** section will give you information about the result produced by a **function**.  This section is often quite detailed as well. 
+
+The **Author(s)**, **See Also** and **Examples** section are self explanatory. However, some examples can be pretty opaque.  It is not uncommon to find examples with many lines of code that simply produce simulated data before you get to the actual use of the **function**. 
+
+Now, let's search for help with the Arithmetic **functions**. This illustrates a special case for **help** because you need to use the **backtick** character, `` ` `` .  The **backtick** (also called **backquote**) is located on the upper left key on the keyboard, next to the `1` key.  To find help for **R operators** and **control flow** constructs, you must flank their symbols or names with backticks.  
+
+**NOTE - YOU CAN ALWAYS USE THE BACKTICKS WITH HELP.  THEY NEVER INTEFERE BUT SOMETIMES THEY ARE REQUIRED!** 
+
+Use `help` to open the help documents for the addition **operator**, `+`.  
+
+```{r q14, exercise=TRUE, exercise.startover=TRUE}
+help(`+`)
+```
+
+This brings you to the help page for the **Arithmetic Operators**. This is a long document given the apparent simplicity of these operations.  **Operators** are similar to functions, but the **syntax** is different, e.g. **operators** are not followed by **parentheses**.
+
+You can find additional mathematic **functions** by entering `help(Math)`.
+
+```{r q15, exercise=TRUE, exercise.startover=TRUE}
+help(Math)
+```
+
+There are three help pages available for Math.  The window should open on the S3 Generic Functions in the **base** package.  In contrast to the **Arithmetic Operators**, the **Math Functions** are typical **functions** with **names** and **arguments**.  
+
+## Help Search 
+
+Not sure of the name of a specific **function** or **package** you are looking for?  You can use `help.search` to perform a textual search of the help documents.  In the cell below, we can search for help with `"t test"`.  
+
+**NOTE - THE DOUBLE QUOTES AROUND "T TEST" ARE REQUIRED BECAUSE YOU ARE SEARCHING FOR A TEXT PATTERN.**
+
+```{r q16, exercise=TRUE, exercise.startover=TRUE}
+help.search("t test")
+```
+
+Depending on the **packages** that you have installed, you may retrieve a dozen or more results for `"t test"`. 
+
+One final help tip, both `help` and `help.search` are used so frequently that there are easier to type shortcuts, `?` for `help` and `??` for `help.search`.
+
+The cell below will search for `help` with the `t.test` **function**.
+
+```{r q17, exercise=TRUE, exercise.startover=TRUE}
+?t.test
+```
+
+While this cell will do a textual search for `"t.test"`.
+
+```{r q18, exercise=TRUE, exercise.startover=TRUE}
+??t.test
+```
+
+## Quiz
+
+Time for a short quiz.  Use the help menu or try various answers as much as you want.  There is no penalty for multiple attempts.  If you are stuck, click the `Hints` button to get progressive hints.  The last hint is the answer.  
+
+
+
+### Question 1
+#### Enter the expression that will search for help with `round`.
+
+```{r q19, exercise=TRUE, exercise.startover=TRUE}
+#Enter your code below.
+```
+
+```{r q19-hint-1}
+help()
+```
+
+```{r q19-hint-2}
+help(round)
+```
+
+```{r q19-hint-3}
+##also OK
+?round
+```
+
+### Question 2
+#### Enter the **expressions** that will round 10.22 to one decimal, and **assign** it to an **object** named `my_result` and display it.
+
+```{r q20, exercise=TRUE, exercise.startover=TRUE}
+#Enter your code below.
+```
+
+```{r q20-hint-1}
+my_result <- 
+```
+
+```{r q20-hint-2}
+my_result <- round()
+```
+
+```{r q20-hint-3}
+my_result <- round(x=10.22)
+```
+
+```{r q20-hint-4}
+my_result <- round(x=10.22, digits=1)
+```
+
+### Question 3
+#### Enter the **expression** that will search for help with the exponent operator, `^`.
+
+```{r q21, exercise=TRUE, exercise.startover=TRUE}
+#Enter your code below.
+```
+
+```{r q21-hint-1}
+help()
+```
+
+```{r q21-hint-2}
+help(`^`)
+```
+
+```{r q21-hint-3}
+##also OK
+?`^`
+```
+
+### Question 4
+#### Enter the **expression** that will multiply `my_result` by 2 then square it.  
+
+```{r q4-setup, include=FALSE}
+my_result <- round(x=10.22, digits=1)
+```
+
+```{r q22, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q4-setup"}
+#Enter your code below.
+```
+
+```{r q22-hint-1}
+(my_result * 2)
+```
+
+```{r q22-hint-2}
+(my_result * 2) ^ 2
+```
+
+This is the end of the tutorial.  You should be more comfortable working with R interactively, but you are just getting started.  If you are having problems, search the R help system.  If you still have questions, please post a question to the course Piazza site.  
+  
