@@ -471,6 +471,7 @@ ar_exp_d</code></pre>
 <pre class="r"><code>ar_exp %&gt;%
   count(Study, Mutation, sort=TRUE) %&gt;%
   write_delim(x=., path=&quot;study_mutation_count.txt&quot;, delim=&quot;\t&quot;, col_names=TRUE)</code></pre>
+<p><strong>Tibbles</strong> are likely the most useful data structure to use in <strong>R</strong>. They are equivalent to Excel worksheets in many respects, but are much less prone to data corruption. <strong>Tibbles</strong> also mesh very well with many data visualizations and statistical tests. These will be covered in later tutorials.</p>
 </div>
 <div id="section-quiz" class="section level2">
 <h2>Quiz</h2>
@@ -480,14 +481,14 @@ ar_exp_d</code></pre>
 <div id="section-which-variable-in-ar_exp-would-be-the-most-useful-factor" class="section level4">
 <h4>Which variable in <code>ar_exp</code> would be the most useful <strong>factor</strong>?</h4>
 
-<div id="htmlwidget-b42bd437fbbc0e12c995" style="width:100%;height:auto;", class = "quiz html-widget">
+<div id="htmlwidget-1d550028a4298c6e4452" style="width:100%;height:auto;", class = "quiz html-widget">
 <div class="panel panel-default">
 <div class="panel-body quizArea">
 </div>
 </div>
 </div>
 
-<script type="application/json" data-for="htmlwidget-b42bd437fbbc0e12c995">{"x":{"question":"","answers":[{"option":"Mutation","correct":true,"message":"Correct, there are only 65 mutations."},{"option":"Profile","correct":false,"message":"Incorrect, all samples have the same <code>Profile<\/code>."},{"option":"Gene","correct":false,"message":"Incorrect, <code>Gene<\/code> is the same for all samples."},{"option":"Value","correct":false,"message":"Incorrect, <code>Value<\/code> is a continuous variable."}],"label":"quiz1","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"Mutation","correct":true,"message":"Correct, there are only 65 mutations."},{"option":"Profile","correct":false,"message":"Incorrect, all samples have the same <code>Profile<\/code>."},{"option":"Gene","correct":false,"message":"Incorrect, <code>Gene<\/code> is the same for all samples."},{"option":"Value","correct":false,"message":"Incorrect, <code>Value<\/code> is a continuous variable."}],"correct":"Correct!","incorrect":"Incorrect."}]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-1d550028a4298c6e4452">{"x":{"question":"","answers":[{"option":"Mutation","correct":true,"message":"Correct, there are only 65 mutations."},{"option":"Profile","correct":false,"message":"Incorrect, all samples have the same <code>Profile<\/code>."},{"option":"Gene","correct":false,"message":"Incorrect, <code>Gene<\/code> is the same for all samples."},{"option":"Value","correct":false,"message":"Incorrect, <code>Value<\/code> is a continuous variable."}],"label":"quiz1","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"Mutation","correct":true,"message":"Correct, there are only 65 mutations."},{"option":"Profile","correct":false,"message":"Incorrect, all samples have the same <code>Profile<\/code>."},{"option":"Gene","correct":false,"message":"Incorrect, <code>Gene<\/code> is the same for all samples."},{"option":"Value","correct":false,"message":"Incorrect, <code>Value<\/code> is a continuous variable."}],"correct":"Correct!","incorrect":"Incorrect."}]}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div id="section-question-2" class="section level3">

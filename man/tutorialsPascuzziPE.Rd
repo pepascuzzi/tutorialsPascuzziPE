@@ -5,53 +5,51 @@
 LearnR Tutorials by P.E. Pascuzzi
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+These learnR tutorials are a work in progress.  They were written to support both undergraduate and graduate courses for students in the life sciences.  The package can be installed or download from GitHub,  https://github.com/pepascuzzi/tutorialsPascuzziPE.  There are currently four tutorials.
+
+    "T01_GettingStarted"
+
+    "T02_DataTypes"
+
+    "T03_UsingVectors"
+
+    "T04_Tibbles"
 }
 \usage{
 learnr::run_tutorial("tutorial name", package="tutorialsPascuzziPE")
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
-%%     ~~Describe \code{x} here~~
 }
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+The learnr and tidyverse packages must be installed and loaded.
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+not applicable
 }
 \references{
-%% ~put references to the literature/web site here ~
+None at this time.
 }
 \author{
-%%  ~~who you are~~
+Pete E. Pascuzzi
 }
 \note{
-%%  ~~further notes~~
+None at this time.
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+learnR package
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (x)
-{
-  }
+library(learnr)
+run_tutorial("T01_GettingStarted", "tutorialsPascuzziPE")
+run_tutorial("T02_DataTypes", "tutorialsPascuzziPE")
+run_tutorial("T03_UsingVectors", "tutorialsPascuzziPE")
+run_tutorial("T04_Tibbles", "tutorialsPascuzziPE")
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+
 \keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
 \keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

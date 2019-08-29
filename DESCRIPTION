@@ -1,11 +1,10 @@
 Package: tutorialsPascuzziPE
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Introductory Tutorials for R and Tidyverse
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Pete E. Pascuzzi
+Maintainer: Pete E. Pascuzzi <ppascuzz@purdue.edu>
+Description: These learnR tutorials were written to support both undergraduate and graduate courses for students in the life sciences.  These are a work in progress.  The package can be installed or downloaded from the GitHub repo, https://github.com/pepascuzzi/tutorialsPascuzziPE
+License: GNU General Public License v3.0
 Encoding: UTF-8
 LazyData: true
