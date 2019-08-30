@@ -9,7 +9,7 @@ There are currently four tutorials:
 + "T03_UsingVectors"
 + "T04_Tibbles"
 
-You run the tutorial using the `run_tutorial` function in the **learnr** package.
+You run a tutorial using the `run_tutorial` function in the **learnr** package.
 
 # Example
 
