@@ -14,6 +14,8 @@ These learnR tutorials are a work in progress.  They were written to support bot
     "T03_UsingVectors"
 
     "T04_Tibbles"
+
+    "T05_IntroToGgplot2"
 }
 \usage{
 learnr::run_tutorial("tutorial name", package="tutorialsPascuzziPE")
