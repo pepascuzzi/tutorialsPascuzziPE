@@ -1,0 +1,515 @@
+---
+title: "Introduction to Ggplot2"
+author:
+- name: Pete E. Pascuzzi
+  affiliation: Purdue University
+runtime: shiny_prerendered
+output: learnr::tutorial
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(learnr)
+library(RColorBrewer)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(fig.width=8)
+knitr::opts_chunk$set(fig.height=8)
+ar_study <- scan("ar_study.txt", what="character", sep="\t")
+ar_tissue <- scan("ar_tissue.txt", what="character", sep="\t")
+ar_tb <- tibble(Study=ar_study, Tissue=str_to_title(ar_tissue))
+abbr <- read_delim("TCGA_CancerType_Abbreviations.txt", delim="\t", col_names=FALSE, trim_ws=TRUE)
+colnames(abbr) <- c("Abbr", "Study")
+abbr %<>% mutate(Study=str_to_title(Study))
+ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", col_names=TRUE)
+ar_exp %<>% mutate(Value = round(log(Value + 0.1, base=2), digits=4))
+ar_exp <- rename(ar_exp, 
+                 Sample=`Sample Id`, 
+                 Study=`Cancer Study`, 
+                 Profile=`Profile Name`)
+ar_exp <- left_join(ar_exp, ar_tb)
+ar_exp %<>% mutate(Study=str_replace(Study, " \\(TCGA, Provisional\\)", ""))
+ar_exp %<>% mutate(Study=str_to_title(Study))
+ar_exp <- left_join(ar_exp, abbr)
+```
+
+## Introduction to R Graphics
+R is known for its data visualization capabilities.  Google "R data visualization" and browse the results!  The **base R** data visualization package is named **graphics**.  It has numerious plot types and parameters, but it is fairly clunky to use.  There are other important packages such as **lattice** and **grid** that you may need in the future for specific purposes.  In addition, there are packages such as **pheatmap** and **corrplot** that generate a single plot type, but do it quite well.  
+
+This tutorial introduces **ggplot2**, an increasingly popular **R** graphics package based on the concept of a "grammar of graphics", [A Layered Grammar of Graphics, Hadley Wickham, 2007](https://www.tandfonline.com/doi/abs/10.1198/jcgs.2009.07098){target="_blank"}.  The key to working with **ggplot2** is to understand that any data visualization is built of multiple components:  
+
++  Data.  
++  Mapping of variables to visual dimensions such as axes, color, shape and size.  
++  Scales.  
++  Data transformations.  
++  Facets (multiple panels).  
++  Annotations.  
+
+Collectively, these components can be used to produce standard plot types such as x-y scatterplots, histograms, barplot or boxplots.  
+
+**Ggplot2** uses a workflow similar to the data manipulations that we performed when we used the pipe operator, `%>%`, in conjunction with functions like `filter` and `select`.  With **ggplot2**, you "add" layers of information to your plot with the addition operator, `+`.  
+
+You generally need three expressions to create a plot:  
+
+1.  `ggplot`initializes the plot using the specified data object (a **tibble** or **data frame**).  
+2.  `aes` is used to map variables from the data to visual properties such as axes, colors or point types.  
+3.  A `geom` family function creates the specified plot type from the data using the aesthetic mappings.  
+
+These steps are joined with the addition operator, `+`, adding new layers of information to the initialized plot.  Many other plot options such as the style of the axes, background and labels will be handled by default values.  Tweaking these minor aesthetic elements is often more complicated, as you will see.  
+
+## AR Expression in Cancer Types  
+
+When you started this tutorial, the **tibble** `ar_exp` was created.  This is the same data that we used in Tutorial 4.  However, two additional columns have been added. `Tissue` indicates the tissue of origin for the cancer, and `Abbr` is the official abbreviation for the cancer type.  You may also notice that the names for `Study` have been simplified.  
+
+```{r q01, exercise=TRUE, exercise.startover=TRUE}
+ar_exp
+```
+
+We can quickly determine the number of samples for each study with `count`.  
+
+```{r q02, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  count(Study)
+```
+
+The table is fine, but this is a good use case for a **barplot** to visualize the data.  
+
+## Plot Count Data with `geom_bar`  
+
+With **ggplot2**, **barplots** are generated with `geom_bar` and are always used to visualize count data, never to visualize a summary statistic such as mean (that is reserved for `geom_col`, see below).  
+
+To reiterate, there are three basic steps to create a plot with **ggplot2**.  
+
+1. Initiate the plot with data using `ggplot`.  
+2. Map your variables to plot dimensions with `aes`.  
+3. Create the plot with a `geom` family function.  Here it will be `geom_bar`.  
+
+The first plot will use only default values.  Note that there is no need to use `count`!  The function `geom_bar` will perform these calculations!  
+
+```{r q03, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Study) +
+  geom_bar()
+```
+
+This plot looks promising, but you cannot read the labels.  
+
+There are several things that we can try.  Using `Abbr` rather than `Study` as the x aesthetic may make the labels legible.  
+
+```{r q04, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr) +
+  geom_bar()
+```
+
+The labels still overlap.  Another tweak is to make the labels perpendicular.  This requires a complicated expression that uses `theme`.  Many minor plot elements in **ggplot2** are modified with `theme`.  It is very difficult to remember these.  Generally a Google search of something like "ggplot2 change axis labels" will reveal the answer.  
+
+```{r q05, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = -90, hjust = 0))
+```
+
+Try altering the values for `angle` and `hjust` to see how it affects the plot.  Allowable values for `hjust` are 0, 0.5 and 1.  
+
+Another quick way, and easier to remember, is to flip the x and y axes with `coord_flip`.  
+
+```{r q06, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr) +
+  geom_bar() +
+  coord_flip()
+```
+
+If you use `coord_flip`, remember that the x-axis is plotted in the y dimension and vice-versa.  Thus, if you want to change the behavior of the flipped x-axis, you still need to make those changes to the x-axis.  
+
+## Adding a Title and Changing Labels  
+
+By default, **ggplot2** does not add a title, and the axis labels are derived from the variables.  You can change these with `ggtitle`, `xlab` and `ylab`.  
+
+```{r q07, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr) +
+  geom_bar() +
+  coord_flip() +
+  ggtitle("Sample Counts for TCGA Studies") +
+  xlab("TCGA Study") +
+  ylab("Sample Count")
+```
+
+By default, the plot title is left justified (weird choice).  You need to use `theme` to change this.  
+
+```{r q08, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr) +
+  geom_bar() +
+  coord_flip() +
+  ggtitle("Sample Counts for TCGA Studies") +
+  theme(plot.title=element_text(hjust=0.5)) +
+  xlab("TCGA Study") +
+  ylab("Sample Count")
+```
+
+## Changing the Plotting Order with `arrange` and `geom_col`  
+
+With `geom_bar`, your grouping variable will be plotted in alphabetical order for **character** variables.  For **factors**, the plot order will be the order of the **levels**.  You will learn how to convert a **character** variable to a **factor** in the next tutorial.  However, there is a work-around that allows you to plot your variables in the order specified after you `arrange` your **tibble**.  
+
+To get a **barplot** of counts in this case, you must use `count` and `arrange` to create a new **tibble**.  You then use this data with `geom_col` to make a barplot-like plot.  The trick here is to manipulate the x-axis with `scale_x_discrete` to make the axis limits match the order in the new **tibble**.  Note the use of `pull` to extract the grouping variable as a **vector** in the order that we want.  
+
+Frankly, this is an advanced technique, and it is included here so that you can file the method for future reference.  
+
+```{r q09, exercise=TRUE, exercise.startover=TRUE}
+abbr_count <- ar_exp %>%
+  count(Abbr) %>%
+  arrange(n)
+
+abbr_order <- pull(abbr_count, Abbr)
+
+abbr_count %>%
+  ggplot() +
+  aes(x=Abbr, y=n) +
+  geom_col() +
+  scale_x_discrete(limits=abbr_order) +
+  coord_flip() +
+  ggtitle("Sample Counts for TCGA Studies") +
+  theme(plot.title=element_text(hjust=0.5)) +
+  xlab("TCGA Study") +
+  ylab("Sample Count")
+```
+
+Try modifying the chunk above with `desc` and `arrange` to change the order of `Abbr`.  
+
+## Adding Color to a Barplot  
+
+Back to the original barplot.  This plot does not have much visual interest (and maybe it does not need to).  However, we can color the bars by tissue of origin by mapping the fill color of the bars to `Tissue`.  
+
+```{r q10, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, fill=Tissue) +
+  geom_bar() +
+  coord_flip() +
+  ggtitle("Sample Counts for TCGA Studies") +
+  theme(plot.title=element_text(hjust=0.5)) +
+  xlab("TCGA Study") +
+  ylab("Sample Count")
+```
+
+The default color palette is not very attractive.  We can tweak this a bit using `scale_fill_discrete` to adjust the **chroma** (intensity of color), `c`, and **luminance** (lightness), `l`.  
+
+```{r q11, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, fill=Tissue) +
+  geom_bar() +
+  coord_flip() +
+  ggtitle("Sample Counts for TCGA Studies") +
+  theme(plot.title=element_text(hjust=0.5)) +
+  xlab("TCGA Study") +
+  ylab("Sample Count") +
+  scale_fill_discrete(c=50, l=50)
+```
+
+Try changing the values for `c` and `l` to see how it affects the plot.  
+
+There are many other ways to manipulate the plotting colors not covered in this tutorial.  
+
+## Visualize Summary Data with `geom_col`  
+
+**Barplots** are also frequently used to plot summary statistics, such as a mean, often in conjunction with error bars.  To do this, you need to group and summarize your data first.  Then, this data is plotted with `geom_col`.  
+
+```{r q12, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(mean_AR=mean(Value)) %>%
+  ggplot() +
+  aes(x=Abbr, y=mean_AR) +
+  geom_col() + 
+  coord_flip()
+```
+
+Again, the grouping variables are plotted in alphabetical order.  To plot in the order of `mean_AR`, you need to create a new **tibble** and use `scale_x_discrete` as shown above.  
+
+```{r q13, exercise=TRUE, exercise.startover=TRUE}
+ar_summary <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(mean_AR=mean(Value)) %>%
+  arrange(mean_AR)
+
+abbr_order <- pull(ar_summary, Abbr)
+
+ar_summary %>%
+  ggplot() +
+  aes(x=Abbr, y=mean_AR) +
+  geom_col() + 
+  coord_flip() +
+  scale_x_discrete(limits=abbr_order)
+```
+
+## Adding Error Bars with `geom_errorbar`  
+
+You can add an error bar to your plot with `geom_errorbar`, but you need to perform the required calculations first.  For our plot, we want to plot the mean, plus/minus the standard deviation.  So we need to add the standard deviation calculation to our summary with `sd`.  
+
+```{r q14, exercise=TRUE, exercise.startover=TRUE}
+ar_summary <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(mean_AR=mean(Value), sd_AR=sd(Value)) %>%
+  arrange(mean_AR)
+
+abbr_order <- pull(ar_summary, Abbr)
+
+ar_summary %>%
+  ggplot() +
+  aes(x=Abbr, y=mean_AR) +
+  geom_col() + 
+  coord_flip() +
+  scale_x_discrete(limits=abbr_order) +
+  aes(ymin=mean_AR - sd_AR, ymax=mean_AR + sd_AR) +
+  geom_errorbar()
+```
+
+For this data, I consider "error bar" to be a misnomer.  The error bars encompass the range of -/+ one standard deviation or about 68% of the values for each cancer type (remember normal distributions for your statistics course?).  This is really a measure of biological and technical variation for AR expression in cancer tissues.  
+
+## Boxplots with `geom_boxplot`  
+
+**Barplots**, even with so called error bars, are becoming less acceptable in research publications.  Reviewers want visualizations that convey more information about your data.  **Boxplots** are increasingly popular for this reason.  
+
+To understand a **boxplot**, you must understand the concept of **quartiles**.  Imagine that your data is arranged on one variable.  Then, you divide your data into 4 groups each with an equal number observations.  These groups are named **quartiles**.  The bottom quartile (**Q1**) contains the 25% of observations that have the lowest values for the variable that you arranged on,  and the top quartile (**Q4**) contains the highest 25%.  
+
+Let's do a **boxplot** on the numbers `1:21` with the values also plotted as points.  The plot is also annotated to aid comprehension.  
+
+```{r eval=TRUE, echo=FALSE}
+tibble(Position=rep(1, 21), Value=1:21) %>%
+  ggplot() +
+  aes(x=Position, y=Value) +
+  geom_boxplot() +
+  geom_point(shape=21, size=2) +
+  annotate("text", x=rep(1.01, 3), 
+           y=c(1, 11, 21) + 0.4, 
+           label=c("Minimum", "Median", "Maximum"), 
+           color="red3", hjust=0) +
+  annotate("segment", x=0.8, xend=0.8, y=c(10, 12), yend=c(6, 16), 
+           linetype=1, size=1, color="blue2", arrow=arrow(length=unit(0.5, "cm"))) +
+  annotate("text", x=0.8, y=11.5, label="IQR", color="blue2") +
+  annotate("segment", x=1.2, xend=1.2, y=c(3, 4), yend=c(1, 6), 
+           linetype=1, size=1, color="blue2", arrow=arrow(length=unit(0.5, "cm"))) +
+  annotate("text", x=1.2, y=3.5, label=c("Q1"), color="blue2") +
+  annotate("segment", x=1.2, xend=1.2, y=c(8, 9), yend=c(6, 11), 
+           linetype=1, size=1, color="blue2", arrow=arrow(length=unit(0.5, "cm"))) +
+  annotate("text", x=1.2, y=8.5, label=c("Q2"), color="blue2") +
+  annotate("segment", x=1.2, xend=1.2, y=c(13, 14), yend=c(11, 16), 
+           linetype=1, size=1, color="blue2", arrow=arrow(length=unit(0.5, "cm"))) +
+  annotate("text", x=1.2, y=13.5, label=c("Q3"), color="blue2") +
+  annotate("segment", x=1.2, xend=1.2, y=c(18, 19), yend=c(16, 21), 
+           linetype=1, size=1, color="blue2", arrow=arrow(length=unit(0.5, "cm"))) +
+  annotate("text", x=1.2, y=18.5, label=c("Q4"), color="blue2")
+```
+
++ The box encompasses the middle 50% of the values, i.e. the second and third quartiles, **Q2** and **Q3**.    
++ The heavy center line is the median value.  If the **boxplot** visualizes a data set with an even number of points, then the median value is the average of the middle two points.  
++ The height of this box is called the Inter Quartile Range (**IQR**)..  
++ The **whiskers** extend from the box to the minimum or maximum values unless there are putative **outliers**.  
++ **Outliers** are any values that fall 1.5 times the **IQR** beyond the upper or lower edges of the box.  Outliers are plotted as points.  The whiskers will then extend to the largest and smallest values that are not outliers.  
++ There is always a value at the end of the whiskers!  
+
+Now, let's make a **boxplot** for AR expression.  For this first plot, we will lump all samples together.  
+
+```{r q15, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(y=Value) +
+  geom_boxplot()
+```
+
+This plot is not particularly helpful.  However, it suggests that we have no outliers.  We can easily map cancer type to the **boxplot** with `x=Abbr`.  
+
+```{r q16, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+This is a very busy plot because there is a large amount of data.  One thing to note is the appearance of putative outliers for many cancer types.  Why?  
+
+In addition, many cancer types have an outlier at `-3.3`, and many of the whiskers extend to this value.  The reason for this is that the data has been log2 transformed.  Many of the original values were zero so `0.1` was added to all values before log2 transformation, `log2(0.1) = -3.321928`.  
+
+How can we aid viewer comprehension of this plot?  One way is to limit the amount of data by using `filter` before you send the data to `ggplot`.  
+
+```{r q17, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>% filter(Tissue == "Urologic") %>%
+  ggplot() +
+  aes(x=Abbr, y=Value) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+This illustrates how well data manipulation with **dplyr** and **magrittr** works with **ggplot2**.  You can quickly create a **boxplot** for different groups of cancers this way.  Perhaps, you might even create a multipanel figure.  
+
+## Creating Multipanel Figures with `facet_wrap`  
+
+Above, we filtered the data of `Tissue` to create a more focused plot.  You can rapidly create multipanel plots with **faceting**.  In a general sense, **faceting** is another way to group your data.  
+
+In **ggplot2**, you can use `facet_wrap` to split your plot across multiple panels using a grouping variable.  The results are not necessarily publication quality, but it can be a great aid to data exploration.  
+
+The chunk below will facet the **boxplot** by `Tissue`.  Note the syntax used with the argument `facets`.  The tilde sign, `~`, is used to create formulas in **R**.  It tells **R** that we want to generate **boxplots** using `Tissue` as a grouping variable.  
+
+In addition, the argument, `scale="free_y"`, prevents all cancer types from appearing in each panel.  
+
+```{r q18, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value) +
+  geom_boxplot() +
+  facet_wrap(facets = ~Tissue, scale="free_y") +
+  coord_flip()
+```
+
+This is still quite a busy plot, and it does have some flaws.  For example, some tissues have only a single type of cancer, so there is only a single box.  However, this is fine for data exploration, especially since the x-axis is consistent across all plots.  
+
+Try removing the argument `scale="free_y"` from the code chunk.  Note the effect on the plot.  
+
+## Arranging a Boxplot  
+
+Back to the original **boxplot**.  
+
+```{r q19, exercise=TRUE, exercise.startover=TRUE}
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+It would be more pleasing if the cancers were plotted by increasing AR expression rather than alphabetically.  We can use the same trick that we used with the column plot above.  In this case, we only need the summary data to get the arranged abbreviations, so we can `pull` this from the summary.  
+
+```{r q20, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(median_AR = median(Value)) %>%
+  arrange(median_AR) %>%
+  pull(Abbr)
+
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value) +
+  geom_boxplot() +
+  scale_x_discrete(limits=abbr_order) +
+  coord_flip()
+```
+
+Finally, we can add a bit of visual appeal by mapping `Tissue` to `fill`.  
+
+```{r q21, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(median_AR = median(Value)) %>%
+  arrange(median_AR) %>%
+  pull(Abbr)
+
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value, fill=Tissue) +
+  geom_boxplot() +
+  scale_x_discrete(limits=abbr_order) +
+  coord_flip() +
+  scale_fill_discrete(c=80, l=60)
+```
+
+This is a very presentable **boxplot**.  If you go to **cBioPortal**, you will see similar **boxplots** for expression of a gene across multiple studies.  However, they go several steps further and overplot all points on the boxplots.  
+
+## Overplotting Points with `geom_jitter`  
+
+We can easily add points to the **boxplot** with `geom_point`.  We simply add an additional layer, and the existing mappings will be used.  
+
+```{r q22, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(median_AR = median(Value)) %>%
+  arrange(median_AR) %>%
+  pull(Abbr)
+
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value, fill=Tissue) +
+  geom_boxplot() +
+  scale_x_discrete(limits=abbr_order) +
+  coord_flip() +
+  scale_fill_discrete(c=80, l=60) +
+  geom_point()
+```
+
+The result is a mess of overplotted points that are difficult to interpret.  We can minimize this issue by using `geom_jitter` rather than `geom_point`.  The function `geom_jitter` will introduce a small amount of noise in the data so that points are shifted in the plot.  
+
+We can't introduce this noise to `Value` because that would corrupt the data.  However, it is fine to jitter along the x-dimension because it will still be clear which points belong to which study.  
+
+The argument `width=0.1` specifies, as a proportion, how much noise to introduce.  Note that we have surpressed plotting of the outliers by `geom_boxplot` with the argument `outlier.shape=NA`.  Otherwise, the outliers would be plotted twice!  
+
+```{r q23, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(median_AR = median(Value)) %>%
+  arrange(median_AR) %>%
+  pull(Abbr)
+
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value, fill=Tissue) +
+  geom_boxplot(outlier.shape=NA) +
+  scale_x_discrete(limits=abbr_order) +
+  coord_flip() +
+  scale_fill_discrete(c=80, l=60) +
+  geom_jitter(width=0.1, pch=21)
+```
+
+There are still so many points that they are difficult to discern.  The only remedy for that is to focus on specific studies.  
+
+## Quiz  
+
+Try to reproduce this plot by adapting the code chunk below.  Sorry, no hints this time.  
+
+```{r echo=FALSE, eval=TRUE}
+abbr_order <- ar_exp %>%
+  filter(Tissue=="Urologic" | Tissue=="Breast") %>%
+  group_by(Abbr) %>%
+  summarize(median_AR = median(Value)) %>%
+  arrange(median_AR) %>%
+  pull(Abbr)
+
+ar_exp %>%
+  filter(Tissue=="Urologic" | Tissue=="Breast") %>%
+  ggplot() +
+  aes(x=Abbr, y=Value, fill=Tissue) +
+  geom_boxplot(outlier.shape=NA) +
+  scale_x_discrete(limits=abbr_order) +
+  coord_flip() +
+  scale_fill_discrete(c=80, l=60) +
+  geom_jitter(width=0.25, pch=21)
+```
+
+```{r quiz1, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(median_AR = median(Value)) %>%
+  arrange(median_AR) %>%
+  pull(Abbr)
+
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, y=Value, fill=Tissue) +
+  geom_boxplot(outlier.shape=NA) +
+  scale_x_discrete(limits=abbr_order) +
+  coord_flip() +
+  scale_fill_discrete(c=80, l=60) +
+  geom_jitter(width=0.1, pch=21)
+```
+
