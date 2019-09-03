@@ -10,6 +10,7 @@ runtime: shiny_prerendered
 ```{r setup, eval=TRUE, echo=FALSE}
 library(learnr)
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
 ```
 
 ## Introduction
