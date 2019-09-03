@@ -51,6 +51,7 @@ run_tutorial("T01_GettingStarted", "tutorialsPascuzziPE")
 run_tutorial("T02_DataTypes", "tutorialsPascuzziPE")
 run_tutorial("T03_UsingVectors", "tutorialsPascuzziPE")
 run_tutorial("T04_Tibbles", "tutorialsPascuzziPE")
+run_tutorial("T05_IntroToGgplot2", "tutorialsPascuzziPE")
 }
 
 \keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
