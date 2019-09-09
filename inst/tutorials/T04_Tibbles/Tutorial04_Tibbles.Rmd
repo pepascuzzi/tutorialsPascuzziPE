@@ -68,7 +68,7 @@ dataframeSortPlot <- function(){
     segments(x0=0.2, y0=seq(from=0.8, to=0.2, by=-0.1), x1=0.8, y1=seq(from=0.8, to=0.2, by=-0.1), lty=2)
 }
 
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = FALSE)
 knitr::opts_chunk$set(fig.width=8)
 knitr::opts_chunk$set(fig.height=8)
