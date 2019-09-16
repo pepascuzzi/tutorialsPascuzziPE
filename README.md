@@ -9,6 +9,7 @@ There are currently four tutorials:
 + "T03_UsingVectors"
 + "T04_Tibbles"
 + "T05_IntroT0Ggplot2"
++ "T06_DataWrangling01"
 
 You run a tutorial using the `run_tutorial` function in the **learnr** package.
 
