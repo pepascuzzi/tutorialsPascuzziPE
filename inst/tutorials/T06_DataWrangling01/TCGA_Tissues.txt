@@ -1,0 +1,31 @@
+Study	Tissue
+Acute Myeloid Leukemia (TCGA, Provisional)	hematologic
+Adrenocortical Carcinoma (TCGA, Provisional)	endocrine
+Bladder Urothelial Carcinoma (TCGA, Provisional)	urologic
+Brain Lower Grade Glioma (TCGA, Provisional)	cns
+Breast Invasive Carcinoma (TCGA, Provisional)	breast
+Cervical Squamous Cell Carcinoma and Endocervical Adenocarcinoma (TCGA, Provisional)	gynecologic
+Cholangiocarcinoma (TCGA, Provisional)	gastrointestinal
+Colorectal Adenocarcinoma (TCGA, Provisional)	gastrointestinal
+Glioblastoma Multiforme (TCGA, Provisional)	cns
+Head and Neck Squamous Cell Carcinoma (TCGA, Provisional)	head and neck
+Kidney Chromophobe (TCGA, Provisional)	urologic
+Kidney Renal Clear Cell Carcinoma (TCGA, Provisional)	urologic
+Kidney Renal Papillary Cell Carcinoma (TCGA, Provisional)	urologic
+Liver Hepatocellular Carcinoma (TCGA, Provisional)	gastrointestinal
+Lung Adenocarcinoma (TCGA, Provisional)	thoracic
+Lung Squamous Cell Carcinoma (TCGA, Provisional)	thoracic
+Lymphoid Neoplasm Diffuse Large B-cell Lymphoma (TCGA, Provisional)	hematologic
+Mesothelioma (TCGA, Provisional)	thoracic
+Ovarian Serous Cystadenocarcinoma (TCGA, Provisional)	gynecologic
+Pancreatic Adenocarcinoma (TCGA, Provisional)	gastrointestinal
+Pheochromocytoma and Paraganglioma (TCGA, Provisional)	endocrine
+Prostate Adenocarcinoma (TCGA, Provisional)	urologic
+Sarcoma (TCGA, Provisional)	soft tissue
+Skin Cutaneous Melanoma (TCGA, Provisional)	skin
+Testicular Germ Cell Cancer (TCGA, Provisional)	urologic
+Thymoma (TCGA, Provisional)	hematologic
+Thyroid Carcinoma (TCGA, Provisional)	endocrine
+Uterine Carcinosarcoma (TCGA, Provisional)	gynecologic
+Uterine Corpus Endometrial Carcinoma (TCGA, Provisional)	gynecologic
+Uveal Melanoma (TCGA, Provisional)	head and neck
