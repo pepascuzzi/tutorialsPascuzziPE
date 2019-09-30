@@ -1,0 +1,720 @@
+---
+title: "Functions and Lapply"
+author:
+- name: Pete E. Pascuzzi
+  affiliation: Purdue University
+runtime: shiny_prerendered
+output: learnr::tutorial
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(magrittr)
+library(pheatmap)
+gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", skip=2, delim="\t")
+knitr::opts_chunk$set(fig.width=8)
+knitr::opts_chunk$set(fig.height=8)
+```
+
+## Introduction  
+
+This tutorial will cover two important topics in  **R programming**: **writing functions** and **repetition structures**.  You can do a lot of data science in **R** without using these skills because there are numerous **R functions** that alreadu have **repetition** built-in, i.e. **vectorized functions** (more below).  
+
+You have used many **base R** and **tidyverse** functions.  These functions exist because someone realized that they had computer code that would be useful in other situations, not merely in their own use case.  This developer then generalized their code, providing multiple **arguments** that other users might need for the function to be useful.  In **R**, these functions are usually shared as part of a larger **package**, but you can find **R functions** on **GitHub** or posted on blogs and forums.  
+
+As stated above, many **R functions** already have **repetition** built-in.  These functions will accept a **vector** with many values as input, and return a result for each value in that **vector**.  However, you frequently need to perform repetitive tasks over multiple **vectors** or other **objects**, so you need a way to repeat or iterate your code.  There are several ways to do this in **R.**  The most common are the **apply family** functions and **for loops**.  
+
+The concepts of **function writing** and **repetition** are introduced together because they are intimately related--you often write a function so that you can use it in a **repetition structure**.  
+
+In this tutorial, data from the **Genotype-Tissue Expression Portal** will be used to demonstrate the usefulness of these concepts.  Go to the [GTEx Top 50 Expressed Genes Page](https://gtexportal.org/home/topExpressedGenePage){target="_blank"} to learn more about this great database.  
+
+With GTEx, you can select a specific tissue, and GTEx will create a heatmap (a data visualization) that shows the expression pattern across all tissues for the top 50 expressed genes in your selected tissue.  You can manipulate and save the heatmap, but you cannot easily save the gene list!  
+
+This tutorial will demonstrate how to **write functions** and use **lapply** or **for loops** to generate 53 gene top 50 gene lists.  
+
+## Learning Objectives  
++ Create a **regular expression** that can recognize multiple patterns.  
++ Identify the parts of an **R function**.  
++ Write an **R function** that can manipulate character strings or numbers.  
++ Use `rename_all` to systematically fix problematic column names in large tibbles.  
++ Explain the key differences between **vectors**, **tibbles** and **lists**.  
++ Use `lapply` to "apply" a **function** to each element in a **list**.  
++ Extract elements from a **list** with double brackets.  
++ **UNDERSTANDING HEATMAPS IS NOT A LEARNING OBJECTIVE OF THIS TUTORIAL!**
+
+## Import Data  
+
+The version 7 **GTEx** data for gene median transcripts per million (TPM).  This is summarized data for each tissue, so we do not know the number of samples or the variance for the expression value.  There is more information at **GTEx**.  
+
+We can import the data as a **tibble**.  This was done when you launched the tutorial.  The code is shown in the chunk below.  Note the file extensions on this file.  It has both `gtc` and `gz`.  
+
+```{r eval=FALSE, echo=TRUE}
+gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", skip=2, delim="\t")
+```
+
+Display the **tibble** and perform a visual check.  
+
+```{r chunk01, exercise=TRUE, exercise.startover=TRUE}
+gtex_median
+```
+
+The data seems fine, but the column names are problematic.  
+
+## Fix Column Names  
+
+There are several things that we need to do to fix the column names:  
+
+1. Use `str_to_title` so that all columns use title case.  
+2. Use `str_replace_all` to replace all occurrences of special characters.  
+
+We could use `rename` and type-out each of these changes, but that is tedious!  Let's find a column name that has all problems and write R code that will fix that problem.  The tissue `Brain - Anterior cingulate cortex (BA24)` has all issues that we need to be fixed.  
+
+Let's create a **character vector** with this string.  
+
+```{r chunk02, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+bad_colname
+```
+
+Before we remove any special characters, we should convert to **title case** while **R** can still discern individual words.  We can use `str_to_title`.  
+
+```{r prepare-prep01, include=FALSE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+```
+
+```{r chunk03, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep01"}
+bad_colname <- bad_colname %>% 
+  str_to_title()
+bad_colname
+```
+
+The `a` in `Ba24` is no longer capitalized, but that is not a major issue for our purposes.  Now we can replace the special characters with "empty space" (not whitespace, " ").  We need to replace the dash, parenthesis and whitespace.  We need to use `str_replace_all` because some of these patterns occur multiple times in each string.  With the parenthesis, we need to use to backslashes to **escape** the parenthesis.  Otherwise, R will recognize the parenthesis as syntax.  
+
+```{r prepare-prep02, include=FALSE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+bad_colname %<>% 
+  str_to_title()
+```
+
+```{r chunk04, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02"}
+bad_colname <- bad_colname %>% 
+  str_replace_all(pattern="-", replacement="") %>%
+  str_replace_all(pattern="\\(", replacement="") %>%
+  str_replace_all(pattern="\\)", replacement="") %>%
+  str_replace_all(pattern=" ", replacement="")
+bad_colname
+```
+
+This column name has now been converted to **CamelCase**, a common file-naming convention that balances file name length and legibility.  
+
+Can we combine these operations as a single pipe and simplify the code?  One potential simplification is that `str_replace_all` is **vectorized** over all of its arguments, so perhaps we can supply a **character vector** for **pattern**?  
+
+```{r chunk05, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+my_patterns <- c("-", "\\(", "\\)", " ")
+bad_colname %<>% 
+  str_to_title() %>%
+  str_replace_all(pattern=my_patterns, replacement="")
+bad_colname
+```
+
+In fact, that does not work because **R** enforces the **Vector Recycling Rule**--the result will always be the same length as the longest input **vector**.  We supplied four patterns, so R recycled both the input **string** and **replacement**!  
+
+To replace multiple patterns in a single string we must use a **regular expression**.  In this case, that means creating a single string where each pattern is separated by the **or** operator, `|`.  
+
+We need to replace `-` or `\\(` or `\\)` or ` `, so the **regular expression** is `-|\\(|\\)| `.
+
+```{r chunk06, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+my_patterns <- "-|\\(|\\)| "
+bad_colname <- bad_colname %>% 
+  str_to_title() %>%
+  str_replace_all(pattern=my_patterns, replacement="")
+bad_colname
+```
+
+Our pipe is essentially a two step function.  It requires an input string and a patterns string.  It will return the input string in CamelCase with the patterns replaced with empty space.  We have 52 other columns that need to pass through this potential function.  We can pass a **vector** of column names through our pipe, and get the desired result.  
+
+```{r chunk07, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- colnames(gtex_median)[3:55]
+my_patterns <- "-|\\(|\\)| "
+bad_colname <- bad_colname %>% 
+  str_to_title() %>%
+  str_replace_all(pattern=my_patterns, replacement="")
+bad_colname
+```
+
+However, we have not yet fixed the columns in the tibble!  To do this efficiently, we must write a function.  
+
+## Creating Functions  
+
+You use `function` to create a **function**.  There are several required components:  
+
+1.  A name for the function (if you want to save it).  
+2.  The `arglist` is the list of **arguments** that your function needs.  
+3.  One or more **expressions** called the **body** of the function.  
+3.  A `value` that is returned.  
+
+`function_name <- function(arglist){`  
+      `expressions / body`  
+      `return(value)`  
+`}`  
+
+In the chunk below is a simple function that will take a name in `"first name" "last name"` format and return it as `"last name", "first name`.  I'm deliberately not using the pipe operator.  One thing to remember about **functions** is that you should always `return` a value at the last step!  None of the intermediate objects will be saved after the function is called, i.e. `out_name` in the function below is not saved to your working environment!  
+
+```{r chunk08, exercise=TRUE, exercise.startover=TRUE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+```
+
+Now, we can test the function.  
+
+```{r prepare-prep03, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+```
+
+```{r chunk09, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+last_first("Jane Doe")
+```
+
+To create a function, the first thing that you should do is determine the **arguments** that are required.  For the "column name fixer", we need three arguments:  
+
+1.  An input string with the bad column names.  
+2.  The bad patterns to detect in the string.  
+3.  A replacement pattern for the bad patterns.  
+
+The names for the **arguments** are not critical, but each **argument** should be used in the function body.  
+
+The function in the chunk below is very similar to the pipe that we created above.  However, you should replace the pipe operator with a stepwise series of expressions.  The pipe operator does not behave predictably when used in the body of a function!  
+
+```{r chunk10, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+colname_fixer <- function(in_string, in_pattern, in_replace){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replace)
+  return(out_string)
+}
+```
+
+Now we can test the function.  
+
+```{r prepare-prep04, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+
+colname_fixer <- function(in_string, in_pattern, in_replace){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replace)
+  return(out_string)
+}
+```
+
+```{r chunk11, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+colname_fixer(in_string=bad_colname, in_pattern="-|\\(|\\)| ", in_replace="")
+```
+
+That is exactly what we expected.  
+
+All of the functions that we used in the body of our function are vectorized, so our function should be vectorized as well.  
+
+```{r chunk12, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+bad_colname <- colnames(gtex_median)[1:5]
+colname_fixer(in_string=bad_colname, in_pattern="-|\\(|\\)| ", in_replace="")
+```
+
+That works!  Maybe we can use our function to quickly rename all columns?  
+
+### Use `rename_all`
+
+Perhaps, we can easily fix all column names in the tibble, `gtex_median`, using the function `rename_all`.  It requires two arguments:  
+
+1. A **tibble** with the columns that need renamed.  
+2. A "renaming" function to use on each column name.  
+
+Can we use `colname_fixer` as the "renaming" function?  We can use the function and specify the require arguments, `in_pattern` and `in_replacement`.  
+
+```{r chunk13, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+gtex_median <- gtex_median %>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replace="")
+gtex_median
+```
+
+That worked!  This can save a lot of time on data sets with a large number of variables.  
+
+### Saving a Function for Future Use  
+
+To use `colname_fixer` in other projects, you can create a plain R script, i.e. `.R` file, with the function definition.  This will be a **source file** for `colname_fixer`.  Save this file in an easy to specify location, e.g. `~/Rscripts`, using the name of the function.  If you want to use `colname_fixer`, simply include and run `source("~/Rscripts/colname_fixer.R")` in your code, and `colname_fixer` will be available.  
+
+The chunk below contains the code in my `colname_fixer.R` file.  The first line determines if the package **stringr** is active.  If not, **stringr** will be loaded.  
+
+```{r eval=FALSE}
+require(stringr)
+colname_fixer <- function(in_string, in_pattern, in_replacement){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replacement)
+  return(out_string)
+}
+```
+
+## Determining the Top 50 Genes for Each Tissue  
+
+If you browse the Top 50 genes list at **GTEx**, you will find many genes for ribosomal proteins.  By default, **GTEx** will filter-out the mitochondrial genes.  Fortunately, the HUGO gene nomenclature makes it easy to remove both the ribosomal protein genes and the mitochondrial genes using text patterns in the gene symbols (`Description`)--genes that encode proteins for the large subunit of the ribosome have `RPL` in their name, and genes that encode proteins for the small subunit have `RPS` in their name.  
+
+```{r prepare-prep05, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+
+colname_fixer <- function(in_string, in_pattern, in_replacement){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replacement)
+  return(out_string)
+}
+
+gtex_median %<>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replacement="")
+```
+
+```{r chunk14, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep05"}
+gtex_median <- gtex_median %>%
+  filter(!str_detect(Description, "RPL")) %>%
+  filter(!str_detect(Description, "RPS")) %>%
+  filter(!str_detect(Description, "MT-"))
+gtex_median
+```
+
+To get the top 50 genes for a specific tissue, we can use the `top_n`, `arrange` and `pull`.  It is not strictly necessary to use `arrange`, but the resulting list of genes is in descending order of Transripts per Million, the unit of gene expression for this data.  
+
+```{r prepare-prep06, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+
+colname_fixer <- function(in_string, in_pattern, in_replacement){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replacement)
+  return(out_string)
+}
+
+gtex_median %<>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replacement="")
+
+gtex_median %<>%
+  filter(!str_detect(Description, "RPL")) %>%
+  filter(!str_detect(Description, "RPS")) %>%
+  filter(!str_detect(Description, "MT-"))
+```
+
+```{r chunk15, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep06"}
+gtex_median %>%
+  top_n(n=50, wt=AdiposeSubcutaneous) %>%
+  arrange(desc(AdiposeSubcutaneous)) %>%
+  pull(Description)
+```
+
+This can be converted to a function.  Remember to carefully determine the required arguments.  
+
+```{r chunk16, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep06"}
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n=in_n, wt=in_column)
+  top_genes <- arrange(top_genes, desc(in_column))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+Now to test the function.  
+
+```{r prepare-prep07, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+
+colname_fixer <- function(in_string, in_pattern, in_replacement){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replacement)
+  return(out_string)
+}
+
+gtex_median %<>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replacement="")
+
+gtex_median %<>%
+  filter(!str_detect(Description, "RPL")) %>%
+  filter(!str_detect(Description, "RPS")) %>%
+  filter(!str_detect(Description, "MT-"))
+
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n=in_n, wt=in_column)
+  top_genes <- arrange(top_genes, desc(in_column))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+```{r chunk17, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep07"}
+top50(in_tibble=gtex_median, in_n=50, in_column=AdiposeSubcutaneous)
+```
+
+Our function does not recognize `AdiposeSubcutaneous` as a column like the other **tidyverse** functions.  
+
+Maybe if we use the column name in quotes?  
+
+```{r chunk18, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep07"}
+top50(in_tibble=gtex_median, in_n=50, in_column="AdiposeSubcutaneous")
+```
+
+The error is cryptic, but it certainly caused by the column name.  The issue is related to how **tidyverse** functions handles column names as "naked variables".  We need additional code that allows functions like `top_n`, `arrange` and `pull` to interpret our input columns.  
+
+The solution is to convert our column name to a symbol that can be evaluated.  Why and how this works is beyond the scope of this tutorial.  Simply put, to convert a column name from a **character string** to something that can be used by `top_n` or `arrange`, you must use the following expression:  
+
+`!! sym("column name as character")`  
+
+This is getting to the heart of the R language itself!  It is not necessary to understand exactly what is happening, but useful to know when to use it!  
+
+We can redefine our function.  
+
+```{r chunk19, exercise=TRUE, exercise.startover=TRUE}
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n = in_n, wt = !! sym(in_column))
+  top_genes <- arrange(top_genes, desc(!! sym(in_column)))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+Test it.  
+
+```{r prepare-prep08, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+
+colname_fixer <- function(in_string, in_pattern, in_replacement){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replacement)
+  return(out_string)
+}
+
+gtex_median %<>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replacement="")
+
+gtex_median %<>%
+  filter(!str_detect(Description, "RPL")) %>%
+  filter(!str_detect(Description, "RPS")) %>%
+  filter(!str_detect(Description, "MT-"))
+
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n = in_n, wt = !! sym(in_column))
+  top_genes <- arrange(top_genes, desc(!! sym(in_column)))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+
+```{r chunk20, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep08"}
+top50(in_tibble=gtex_median, in_n=50, in_column="AdiposeSubcutaneous")
+```
+
+It works!  Can we do multiple columns?  
+
+```{r chunk21, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep08"}
+my_columns <- colnames(gtex_median)[3:4]
+top50(in_tibble=gtex_median, in_n=50, in_column=my_columns)
+```
+
+Not surprisingly, this does not work.  Our function `top50` has no way to handle multiple columns.  We need to work through each step of the function completely before we move to the next column.  
+
+## Use `lapply` to Use a Function on Multiple Values  
+
+Many, but not all, R functions are vectorized.  Importantly, many R objects are not vectors.  A **list** is a special mode of a **vector**, and many R objects are variations on a **list**, e.g. **data frames** and **tibbles** are essentially **lists**.  
+
+**Lists** are so common in R that there is a special function, `lapply`, that allows you to apply a function to each element (values) in a **list**.  The basic use of `lapply` is this:
+
+`lapply(X = list or list-like object, FUN = function to apply to each element of list, ... = other arguments to FUN)`
+
+Let's create a simple example.  
+
+```{r chunk22, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep08"}
+my_list <- list(panel01=1:10, panel02=8:15, panel03=c(1:3, 15))
+my_list
+```
+
+This list has three elements, `panel01`, `panel02` and `panel03`.  Each element is a numeric vector, but they are of different length.  
+
+This data could certainly be organized as a **tibble** with one column for `panel` and another with `value`.  You could then `group_by` `panel` and use `summarize` to determine the mean for each panel.  
+
+However, we can also use `lapply` to "apply" `mean` to each element in the list.  
+
+```{r prepare-prep09, include=FALSE}
+my_list <- list(panel01=1:10, panel02=8:15, panel03=c(1:3, 15))
+```
+
+```{r chunk23, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep09"}
+lapply(my_list, mean)
+```
+
+Note that the input was a list with a length of three, and the result is a list with a length of three.  
+Given that information, can we use `top50` with `lapply` using the column names as a list?  
+
+```{r chunk25, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep08"}
+my_columns <- colnames(gtex_median)[3:4]
+lapply(my_columns, top50, in_tibble=gtex_median, in_n=50)
+```
+
+That worked!  We have a list with two elements, and each element is a vector of gene names.  
+
+Now we can do all the tissues.  We can name the elements of the resulting list to help keep track of the tissues.  
+
+```{r chunk26, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep08"}
+my_columns <- colnames(gtex_median)[3:55]
+top50_genes <- lapply(my_columns, top50, in_tibble=gtex_median, in_n=50)
+names(top50_genes) <- my_columns
+```
+
+Examine a few of the results  
+
+```{r prepare-prep10, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+
+colname_fixer <- function(in_string, in_pattern, in_replacement){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replacement)
+  return(out_string)
+}
+
+gtex_median %<>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replacement="")
+
+gtex_median %<>%
+  filter(!str_detect(Description, "RPL")) %>%
+  filter(!str_detect(Description, "RPS")) %>%
+  filter(!str_detect(Description, "MT-"))
+
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n = in_n, wt = !! sym(in_column))
+  top_genes <- arrange(top_genes, desc(!! sym(in_column)))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+my_columns <- colnames(gtex_median)[3:55]
+top50_genes <- lapply(my_columns, top50, in_tibble=gtex_median, in_n=50)
+names(top50_genes) <- my_columns
+```
+
+```{r chunk27, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep10"}
+head(top50_genes)
+```
+
+The list, `top50_genes` has 53 elements, one for each tissue in the GTEx data.  Each element is a character vector of 50 gene symbols.  
+
+What can we do with this list?  One thing that we can try is to make our own heatmaps, similar to the visualizations at **GTEx**.  
+
+There will be a more detailed tutorial on heatmaps later.  Most of the code in the chunk below is required to convert the data in the **tibble** to a **matrix** that can be used by `pheatmap`.  
+
+To extract the genes symbols from `top50_genes`, you use double brackets, `[[]]`, and the name of the element as a **character pattern**.  
+
+You can also limit the number of tissues by indexing `my_columns` with an integer vector.  
+
+The chunk below will visualize the results for the top 50 genes of the brain cortex showing only the first 30 tissues.  The data has been transformed to facilitate visualization.  
+
+```{r chunk28, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep10", fig.width=8, fig.height=8}
+heatmap_genes <- top50_genes[["BrainCortex"]]
+heatmap_columns <- my_columns[1:30]
+heatmap_data <- filter(gtex_median, Description %in% heatmap_genes) %>%
+  select(Description, heatmap_columns)
+heatmap_mat <- as.matrix(select(heatmap_data, heatmap_columns))
+gene_mean <- apply(heatmap_mat, 1, mean, na.rm=TRUE)
+gene_sd <- apply(heatmap_mat, 1, sd, na.rm=TRUE)
+heatmap_mat <- sweep(heatmap_mat, 1, gene_mean, "-")
+heatmap_mat <- sweep(heatmap_mat, 1, gene_sd, "/")
+rownames(heatmap_mat) <- pull(heatmap_data, Description)
+pheatmap(heatmap_mat, fontsize=8)
+```
+
+You can change the gene list by using a different tissue name.  You can change the tissue to display by changing the integer vector that indexes `my_columns`.  
+
+## Quiz  
+
+Take the following quiz to assess your progress.  
+
+### Question 1
+
+#### Which of the following are parts of a **function**?
+
+```{r quiz1, echo=FALSE}
+question("", type="multiple",
+  answer("name", correct=TRUE),
+  answer("body", correct=TRUE),
+  answer("elements",correct=FALSE),
+  answer("arguments", correct=TRUE),
+  answer("objects",correct=FALSE)
+)
+```
+
+### Question 2
+
+#### Given the **character vector** with the following values, `Cost ($)`, `income (%)`, `PHONE #`, create a **regular expression** and code the will create a **character vector** with the values, `Cost`, `Income`, `Phone`. 
+
+```{r quiz2, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep10"}
+input_vector <- c("Cost ($)", "income (%)", "PHONE #")
+```
+
+```{r quiz2-hint-1}
+my_regex <- 
+```
+
+```{r quiz2-hint-2}
+my_regex <- "\\(|\\$"
+```
+
+```{r quiz2-hint-3}
+my_regex <- "\\(|\\$|\\)|\\%|\\#"
+
+```
+
+```{r quiz2-hint-4}
+my_regex <- "\\(|\\$|\\)|\\%|\\#"
+output_vector <- str_to_title(input_vector)
+```
+
+```{r quiz2-hint-5}
+my_regex <- "\\(|\\$|\\)|\\%|\\#"
+output_vector <- str_to_title(input_vector) %>%
+  str_replace_all(my_regex, "") %>%
+  str_trim()
+output_vector
+```
+
+### Question 3
+
+#### Which of the following are `TRUE` statements about **lists**.  
+
+```{r quiz3, echo=FALSE}
+question("", type="multiple",
+  answer("Lists have elements.", correct=TRUE),
+  answer("Each element in a list can have a different length.", correct=TRUE),
+  answer("You can use the function group_by on any list.",correct=FALSE),
+  answer("You can extract elements with double brackets.", correct=TRUE)
+)
+```
+
+### Question 4
+
+#### Write a function that will return the highest expressing gene, `Description`, if you provide a tibble name and tissue name as a character vector (using the renamed columns).  Hint, you will need to use `!! sym()`.  
+
+```{r quiz4, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep10"}
+
+```
+
+```{r quiz4-hint-1}
+topGene <- function(arguments){
+  body
+}
+```
+
+```{r quiz4-hint-2}
+topGene <- function(tibble, tissue){
+
+}
+
+```
+
+```{r quiz4-hint-3}
+topGene <- function(tibble, tissue){
+  subset_tb <- select(tibble, Description, !! sym(tissue))
+  
+}
+
+```
+
+```{r quiz4-hint-4}
+topGene <- function(tibble, tissue){
+  subset_tb <- select(tibble, Description, !! sym(tissue))
+  subset_tb <- arrange(subset_tb, desc(!! sym(tissue)))
+}
+```
+
+```{r quiz4-hint-5}
+topGene <- function(tibble, tissue){
+  subset_tb <- select(tibble, Description, !! sym(tissue))
+  subset_tb <- arrange(subset_tb, desc(!! sym(tissue)))
+  top_gene <- slice(subset_tb, 1)
+  top_gene <- pull(top_gene, Description)
+  return(top_gene)
+}
+```
+
+### Question 5
+
+#### Given the list, `top50_genes`, how would you determine the total number of characters in the gene symbols for each tissue?  
+
+```{r quiz5, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep10"}
+
+```
+
+```{r quiz5-hint-1}
+top50_nchar <- lapply(top50_genes, )
+
+```
+
+```{r quiz5-hint-2}
+top50_nchar <- lapply(top50_genes, nchar)
+
+```
+
+```{r quiz5-hint-3}
+top50_nchar <- lapply(top50_genes, nchar)
+top50_charsum <- lapply(top50_nchar, )
+
+```
+
+```{r quiz5-hint-4}
+top50_nchar <- lapply(top50_genes, nchar)
+top50_charsum <- lapply(top50_nchar, sum)
+```
+
+```{r quiz5-hint-5}
+top50_nchar <- lapply(top50_genes, nchar)
+top50_charsum <- lapply(top50_nchar, sum)
+top50_charsum
+```
+
+This is the end of the tutorial.  Make sure that you understand functions and lists.  They are very useful tools for your **R** arsenal!  
+
+```{r}
+sessionInfo()
+```
+
