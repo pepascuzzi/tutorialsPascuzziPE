@@ -97,13 +97,18 @@ The argument `delim="\t"` indicates that the file has **tab-delimited** columns.
 Note that the function `read_delim` was used and **NOT** `read.delim`.  The first is a **tidyverse R function** that will create a **tibble**.  The latter is an **old school R** function that will create a **data frame**.  In general, do not use `read.delim` in this class!  
 The **class** of a **tibble** is confusing.  It essentially has three classes.  Importantly, it behaves much like the **data frame**.  
 
-
+```{r q65, exercise=TRUE, exercise.startover=TRUE}
+class(ar_exp)
+```
 ```
 ## [1] "spec_tbl_df" "tbl_df"      "tbl"         "data.frame"
 ```
 
 To examine the data in a **tibble**, simply enter its name.  In an RMarkdown document, you should be able to browse down the rows and across the columns.  In addition, the size (rows and columns) and class of each variable should be shown (under the column names).  
 
+```{r q66, exercise=TRUE, exercise.startover=TRUE}
+ar_exp
+```
 
 ```
 ## # A tibble: 9,121 x 6
@@ -126,6 +131,9 @@ This data was downloaded from [cBioPortal](http://www.cbioportal.org/){target="_
 
 You can use `summary` to get a quick summary of each column or variable in a **tibble**.  Remember the issue with rounding of numbers from the **vectors** lesson!
 
+```{r q69, exercise=TRUE, exercise.startover=TRUE}
+summary(ar_exp)
+```
 
 ```
 ##   Sample Id         Cancer Study       Profile Name      
@@ -152,6 +160,9 @@ Here is a quick example (jumping ahead a bit).
 
 You can create a subset of a **tibble** by selecting specific columns by name without using quotes or back ticks.  For example, we can select the variables `Mutation` and `Value` from `ar_exp`.  
 
+```{r q70, exercise=TRUE, exercise.startover=TRUE}
+select(ar_exp, Mutation, Value)
+```
 
 ```
 ## # A tibble: 9,121 x 2
@@ -172,6 +183,9 @@ You can create a subset of a **tibble** by selecting specific columns by name wi
 
 But, you will get an error if you try to select `Cancer Study`.  You can fix this by flanking `Cancer Study` with backquotes (the key to the left of the number 1).  Single quotes and double quotes work as well.  In fact, in **base R**, column names must always be quoted, even if there are no special characters!  
 
+```{r q71, exercise=TRUE, exercise.startover=TRUE}
+select(ar_exp, `Cancer Study`, Mutation)
+```
 
 ```
 ## # A tibble: 9,121 x 2
@@ -202,6 +216,13 @@ Renaming columns is simple with the function `rename`.  The first **argument** i
 
 This **expression** is a simple example of **recursion**, i.e. we are creating an **object** named `ar_exp` from an **object** named `ar_exp`.  Simply put, we are overwriting the old object.  Recursive techniques are very common in computer programming, but you need to be careful, e.g. this chunk will only run properly once because the original column names are gone.  
 
+```{r q72, exercise=TRUE, exercise.startover=TRUE}
+ar_exp <- rename(ar_exp, 
+                 Sample=`Sample Id`, 
+                 Study=`Cancer Study`, 
+                 Profile=`Profile Name`)
+ar_exp
+```
 
 ```
 ## # A tibble: 9,121 x 6
@@ -228,6 +249,9 @@ Unlike Excel, with **R** you generally don't see the data when you analyze it.  
 
 You can extract a single row or multiple rows by row number with `slice`.  For example, the chunk below will extract row 100.  
 
+```{r q73, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+slice(ar_exp, 100)
+```
 
 ```
 ## # A tibble: 1 x 6
@@ -238,6 +262,9 @@ You can extract a single row or multiple rows by row number with `slice`.  For e
 
 You can extract a sequence of rows if you use `slice` with the colon operator, `:`.
 
+```{r q74, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+slice(ar_exp, 11:20)
+```
 
 ```
 ## # A tibble: 10 x 6
@@ -257,6 +284,9 @@ You can extract a sequence of rows if you use `slice` with the colon operator, `
 
 You can use the sequence generation function, `seq`, to create complex sequences of numbers.  
 
+```{r q75, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+slice(ar_exp, seq(from=5, to=100, by=5))
+```
 
 ```
 ## # A tibble: 20 x 6
@@ -286,6 +316,9 @@ You can use the sequence generation function, `seq`, to create complex sequences
 
 You can use the combine function, `c`, to extract a combination of specific rows.  
 
+```{r q76, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+slice(ar_exp, c(1, 13, 11, 5, 11, 3))
+```
 
 ```
 ## # A tibble: 6 x 6
@@ -311,6 +344,9 @@ More frequently, you will want to extract rows based on the values of one or mor
 
 The chunk below will extract the samples with the ten highest values for AR expression.  
 
+```{r q77, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+top_n(ar_exp, 10, Value)
+```
 
 ```
 ## # A tibble: 10 x 6
@@ -332,6 +368,9 @@ Note, the rows are displayed in their original order, not in the sorted order.
 
 You can see the bottom ten by using `n = -10`.  
 
+```{r q78, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+top_n(ar_exp, -10, Value)
+```
 
 ```
 ## # A tibble: 421 x 6
@@ -352,6 +391,9 @@ You can see the bottom ten by using `n = -10`.
 
 This also works with **character** variables, but you simply get the results of an alphabetical sort.  
 
+```{r q79, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+top_n(ar_exp, 10, Mutation)
+```
 
 ```
 ## # A tibble: 10 x 6
@@ -395,6 +437,9 @@ The result of a Boolean expression is a **logical vector**, i.e. a series of `TR
 
 Here is a simple example that determines which numbers are greater than 5 in the sequence `1:10`.  
 
+```{r q80, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+1:10 > 5
+```
 
 ```
 ##  [1] FALSE FALSE FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE
@@ -402,6 +447,9 @@ Here is a simple example that determines which numbers are greater than 5 in the
 
 The chunk below will return `TRUE` for numbers between 2 and 4 inclusive.  
 
+```{r q81, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+between(1:10, 2, 4)
+```
 
 ```
 ##  [1] FALSE  TRUE  TRUE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE
@@ -409,6 +457,9 @@ The chunk below will return `TRUE` for numbers between 2 and 4 inclusive.
 
 You can use expression like this with the function `filter` to extract only the rows where you expression evaluates to `TRUE`.  The chunk below will use exact matching to extract samples with the "Q58L" mutation.  
 
+```{r q82, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+filter(ar_exp, Mutation == "Q58L")
+```
 
 ```
 ## # A tibble: 8 x 6
@@ -426,6 +477,9 @@ You can use expression like this with the function `filter` to extract only the 
 
 We can narrow the filter by including a range for `Value`.  
 
+```{r q83, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+filter(ar_exp, Mutation == "Q58L" & between(Value, 3, 4))
+```
 
 ```
 ## # A tibble: 4 x 6
@@ -445,6 +499,10 @@ You can select one or more columns from a **tibble** with the function `select`.
 
 The chunk below will change the order of our columns and save it to `ar_exp`.  
 
+```{r 84, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+ar_exp <- select(ar_exp, Gene, Value, Mutation, Sample, Study, Profile)
+ar_exp
+```
 
 ```
 ## # A tibble: 9,121 x 6
@@ -467,6 +525,9 @@ This operation does not really change the data in anyway.  It simply changes the
 
 The chunk below will only retain three columns.  In this case, we are not going to save the result to a new object.  
 
+```{r 84a, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+select(ar_exp, Gene, Value, Sample)
+```
 
 ```
 ## # A tibble: 9,121 x 3
@@ -487,6 +548,9 @@ The chunk below will only retain three columns.  In this case, we are not going 
 
 You can also use ranges of columns with the colon operator, `:`.  
 
+```{r 85, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+select(ar_exp, Gene:Mutation, Study)
+```
 
 ```
 ## # A tibble: 9,121 x 4
@@ -507,6 +571,9 @@ You can also use ranges of columns with the colon operator, `:`.
 
 With the subtraction operator, `-`, you can drop specific columns.  
 
+```{r 86, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+select(ar_exp, -Gene, -Study)
+```
 
 ```
 ## # A tibble: 9,121 x 4
@@ -535,6 +602,10 @@ The need to `pull` variables from a **tibble** is not always apparent when you t
 
 Compare the result when we create a one column **tibble** for `Mutation` and count the number of characters.  
 
+```{r 87, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+mut_tb <- select(ar_exp, Mutation)
+nchar(mut_tb)
+```
 
 ```
 ## Mutation 
@@ -545,6 +616,10 @@ This appears to be the number of characters for all values in the `Mutation` col
 
 Compare this to the result if we `pull` the variable `Mutation` from the **tibble** to make a **character vector**. 
 
+```{r 88, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+mut_v <- pull(ar_exp, Mutation)
+nchar(mut_v)[1:100]
+```
 
 ```
 ##   [1] 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11
@@ -558,6 +633,10 @@ I had to use the extraction operators, `[]`, to limit the display to the first 1
 
 In fact, the result on the **tibble** is NOT the sum total of all characters in the `Mutation` variable.  We can confirm this by calculating the `sum` on the vector.  
 
+```{r 89, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+mut_v <- pull(ar_exp, Mutation)
+sum(nchar(mut_v))
+```
 
 ```
 ## [1] 104900
@@ -573,6 +652,9 @@ You can use the function `arrange` to directly sort a **tibble** by one or more 
 
 This chunk will sort our **tibble** by `Value` and `Study`, in ascending order.  The first listed variable has precedent.  
 
+```{r 90, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+arrange(ar_exp, Value, Study)
+```
 
 ```
 ## # A tibble: 9,121 x 6
@@ -593,6 +675,9 @@ This chunk will sort our **tibble** by `Value` and `Study`, in ascending order. 
 
 You can get the descending sort by adding `desc`.  
 
+```{r 91, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+arrange(ar_exp, desc(Value), Study)
+```
 
 ```
 ## # A tibble: 9,121 x 6
@@ -615,6 +700,13 @@ It should be obvious that functions such as `filter`, `select`, and `arrange` wo
 
 The chunk below will extract `Study` and `Value` for samples with the 20 highest values for AR expression where the gene is not mutated.  
 
+```{r 92, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+ar_exp_a <- filter(ar_exp, Mutation == "Not Mutated")
+ar_exp_b <- arrange(ar_exp_a, desc(Value))
+ar_exp_c <- slice(ar_exp_b, 1:20)
+ar_exp_d <- select(ar_exp_c, Study, Value)
+ar_exp_d
+```
 
 ```
 ## # A tibble: 20 x 2
@@ -657,6 +749,12 @@ This is what we did previously in stepwise fashion.
 
 We can simply replace these steps with **R** code, joining the expressions with the **pipe operator**, `%>%`.  When you use a **pipe** you do not need to specify the value for data argument except in the first expression.  In fact, you will get an error.  You can use a period, `.`, to indicate the piped value, but this is optional if the piped value is as the first argument.  
 
+```{r 93, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+filter(ar_exp, Mutation == "Not Mutated") %>%
+  arrange(., desc(Value)) %>%
+  slice(., 1:20) %>%
+  select(., Study, Value)
+```
 
 ```
 ## # A tibble: 20 x 2
@@ -686,6 +784,13 @@ We can simply replace these steps with **R** code, joining the expressions with 
 
 What if we wanted to determine the `mean` value for these samples?  
 
+```{r 94, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+filter(ar_exp, Mutation == "Not Mutated") %>%
+  arrange(desc(Value)) %>%
+  slice(1:20) %>%
+  pull(Value) %>%
+  mean()
+```
 
 ```
 ## [1] 11.77237
@@ -695,6 +800,12 @@ It may not be obvious, but a pipe is similar to a **function**, a series of **R*
 
 For example, what about samples that have confirmed mutations?  
 
+```{r 95, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+filter(ar_exp, !(Mutation == "Not Mutated") & !(Mutation == "Not Sequenced")) %>%
+  arrange(desc(Value)) %>%
+  slice(1:20) %>%
+  select(Mutation, Value)
+```
 
 ```
 ## # A tibble: 20 x 2
@@ -724,6 +835,13 @@ For example, what about samples that have confirmed mutations?
 
 The filter appears to work correctly.  
 
+```{r 96, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+filter(ar_exp, !(Mutation == "Not Mutated") & !(Mutation == "Not Sequenced")) %>%
+  arrange(desc(Value)) %>%
+  slice(1:20) %>%
+  pull(Value) %>%
+  mean()
+```
 
 ```
 ## [1] 8.77191
@@ -739,6 +857,11 @@ What if we wanted the mean expression of AR by cancer type?  We can use `group_b
 
 The result is a new tibble with the columns `Study` (the grouping variable) and `mean_AR`, the variable a defined with `summarize`.  
 
+```{r 97, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+ar_exp %>%
+  group_by(Study) %>%
+  summarize(mean_AR = mean(Value))
+```
 
 ```
 ## # A tibble: 30 x 2
@@ -759,6 +882,12 @@ The result is a new tibble with the columns `Study` (the grouping variable) and 
 
 We can quickly add `arrange` to the pipe to get this is descending order.  
 
+```{r 98, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+ar_exp %>%
+  group_by(Study) %>%
+  summarize(mean_AR = mean(Value)) %>% 
+  arrange(desc(mean_AR))
+```
 
 ```
 ## # A tibble: 30 x 2
@@ -779,6 +908,12 @@ We can quickly add `arrange` to the pipe to get this is descending order.
 
 You can add as many summary variables as you need.  For example, you might want the standard deviation, `sd`.  
 
+```{r 99, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+ar_exp %>%
+  group_by(Study) %>%
+  summarize(mean_AR = mean(Value), sd_AR=sd(Value)) %>% 
+  arrange(desc(mean_AR))
+```
 
 ```
 ## # A tibble: 30 x 3
@@ -807,6 +942,10 @@ The function `count`, will group your observations by the specified variables an
 
 For example, how many samples are there for each study?  
 
+```{r 100, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+ar_exp %>%
+  count(Study, sort=TRUE)
+```
 
 ```
 ## # A tibble: 30 x 2
@@ -827,6 +966,10 @@ For example, how many samples are there for each study?
 
 You can include as many grouping variables as you need.  
 
+```{r 101, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp"}
+ar_exp %>%
+  count(Study, Mutation, sort=TRUE)
+```
 
 ```
 ## # A tibble: 133 x 3
