@@ -47,13 +47,13 @@ You have already worked with **numeric** and **character vectors** and a similar
 
 Run the cell below to produce a plot to illustrate this point.
 
-![](Tutorial04_Tibbles_Plain_files/figure-html/q60-1.png)<!-- -->
+![](inst/tutorials/T04_Tibbles/images/q60-1.png)
 
 However, you can sort or reorder **vectors**, so what happens if your values are no longer aligned? 
 
 Run the cell below to produce a plot that illustrates this situation.
 
-![](Tutorial04_Tibbles_Plain_files/figure-html/q61-1.png)<!-- -->
+![](inst/tutorials/T04_Tibbles/images/q61-1.png)
 
 As shown in the plot, the positions in **vector** `B` and `C` are no longer parallel with **vector** `A`.  Any analysis that uses data in **vector** `B` or `C` will not be accurate. 
 
@@ -61,13 +61,13 @@ So, how can you store data when multiple variables are stored for each sample, r
 
 Run the cell below to generate a plot that illustrates the linked **vectors** of a **tibbles**.
 
-![](Tutorial04_Tibbles_Plain_files/figure-html/q62-1.png)<!-- -->
+![](inst/tutorials/T04_Tibbles/images/q62-1.png)
 
 If you reorder the values in a **tibble**, all **vectors** in that **tibble** are also reordered.
 
 Run the cell below to generate a plot that illustrates this.
 
-![](Tutorial04_Tibbles_Plain_files/figure-html/q63-1.png)<!-- -->
+![](inst/tutorials/T04_Tibbles/images/q63-1.png)
 
 ## Create a **Tibble** with `read_delim`  
 
