@@ -81,7 +81,7 @@ There are three ways to create a **tibble**.
 
 The **function** `read_delim` will create a **tibble** by reading data from a text file.  Reading data from a text file is likely the most common way to import data with **R**.  There are many ways to organize data in a text file, and a common format has data arranged in rows and columns similar to an Excel worksheet.  You can also import Excel worksheets, but that requires a different function.  
 
-![](images/RectData.PNG)
+![](inst/tutorials/T04_Tibbles/images/RectData.PNG)
 
 The variables or columns in these files are separated or **delim**ited by characters such as a **tab** or **comma**.  In addition, each row of data terminates with a character string that indicates a new line.  
 
