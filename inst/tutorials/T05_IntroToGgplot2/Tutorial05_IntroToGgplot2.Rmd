@@ -22,7 +22,9 @@ ar_tb <- tibble(Study=ar_study, Tissue=str_to_title(ar_tissue))
 abbr <- read_delim("TCGA_CancerType_Abbreviations.txt", delim="\t", col_names=FALSE, trim_ws=TRUE)
 colnames(abbr) <- c("Abbr", "Study")
 abbr %<>% mutate(Study=str_to_title(Study))
-ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", col_names=TRUE)
+ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", 
+                     col_names=TRUE, col_types="cffffn", 
+                     na=c("", "-", "NA", "missing", "Inf", "-Inf"))
 ar_exp %<>% mutate(Value = round(log(Value + 0.1, base=2), digits=4))
 ar_exp <- rename(ar_exp, 
                  Sample=`Sample Id`, 
@@ -88,10 +90,10 @@ To reiterate, there are three basic steps to create a plot with **ggplot2**.
 The first plot will use only default values.  Note that there is no need to use `count`!  The function `geom_bar` will perform these calculations!  
 
 ```{r q03, exercise=TRUE, exercise.startover=TRUE}
-ar_exp %>%
-  ggplot() +
-  aes(x=Study) +
-  geom_bar()
+ar_exp %>%        #pipe data to ggplot
+  ggplot() +      #initiate the plot
+  aes(x=Study) +  #map the variable (column) Study to the x-axis
+  geom_bar()      #create the plot with a barplot geometry
 ```
 
 This plot looks promising, but you cannot read the labels.  
@@ -105,17 +107,21 @@ ar_exp %>%
   geom_bar()
 ```
 
-The labels still overlap.  Another tweak is to make the labels perpendicular.  This requires a complicated expression that uses `theme`.  Many minor plot elements in **ggplot2** are modified with `theme`.  It is very difficult to remember these.  Generally a Google search of something like "ggplot2 change axis labels" will reveal the answer.  
+## Changing the Orientation of Text Axis Labels  
+
+The labels still overlap.  Another tweak is to make the labels perpendicular.  This requires a complicated expression that uses `theme`.  Many minor plot elements in **ggplot2** are modified with `theme`.  There are a large number of options that can be tweaked with `theme`.  It is very difficult to remember these, but a well-crafted Google search like "ggplot2 change axis labels" will reveal an answer.  
 
 ```{r q05, exercise=TRUE, exercise.startover=TRUE}
 ar_exp %>%
   ggplot() +
   aes(x=Abbr) +
   geom_bar() +
-  theme(axis.text.x = element_text(angle = -90, hjust = 0))
+  theme(axis.text.x = element_text(angle = -90))
 ```
 
-Try altering the values for `angle` and `hjust` to see how it affects the plot.  Allowable values for `hjust` are 0, 0.5 and 1.  
+Try altering the values for `angle` to see how it affects the plot.  
+
+## Flipping the Axes with `coord_flip`
 
 Another quick way, and easier to remember, is to flip the x and y axes with `coord_flip`.  
 
@@ -144,7 +150,13 @@ ar_exp %>%
   ylab("Sample Count")
 ```
 
-By default, the plot title is left justified (weird choice).  You need to use `theme` to change this.  
+By default, the plot title is left justified (weird choice).  You need to use `theme`, `plot.title` and `element_text` to change the justification.  The value for `hjust` should be a number between `0` and `1`:  
+
+|Value|Result|
+|:---|:---|
+|`0`|left justified|
+|`0.5`|centered|
+|`1`|right justified|
 
 ```{r q08, exercise=TRUE, exercise.startover=TRUE}
 ar_exp %>%
@@ -158,25 +170,35 @@ ar_exp %>%
   ylab("Sample Count")
 ```
 
-## Changing the Plotting Order with `arrange` and `geom_col`  
+Edit the chunk above to try other values for `hjust`.  What is the effect?  
 
-With `geom_bar`, your grouping variable will be plotted in alphabetical order for **character** variables.  For **factors**, the plot order will be the order of the **levels**.  You will learn how to convert a **character** variable to a **factor** in the next tutorial.  However, there is a work-around that allows you to plot your variables in the order specified after you `arrange` your **tibble**.  
+## Changing the Plotting Order with `scale_x_discrete`  
 
-To get a **barplot** of counts in this case, you must use `count` and `arrange` to create a new **tibble**.  You then use this data with `geom_col` to make a barplot-like plot.  The trick here is to manipulate the x-axis with `scale_x_discrete` to make the axis limits match the order in the new **tibble**.  Note the use of `pull` to extract the grouping variable as a **vector** in the order that we want.  
+With `geom_bar`, your grouping variable will be plotted in alphabetical order for **character** variables.  For **factors**, the plot order will be the order of the **levels**.  However, we can change the plotting order of **character variables** by specifying the `limits` with `scale_x_discrete`.  
 
-Frankly, this is an advanced technique, and it is included here so that you can file the method for future reference.  
+A **discrete variable** is any data type that has only defined valid values in a dataset.  Integers are a simple example.  The integers `1` and `2` are allowed values, but not values in between.  **Character variables**, **categorical variables** and **factors** are other examples of discrete variables.  In this case, `Abbr` has only a limited number of valid values, so it is a **discrete variable**.  
 
-```{r q09, exercise=TRUE, exercise.startover=TRUE}
-abbr_count <- ar_exp %>%
+To change the plotting order for `Abbr`, the desired order, as a **character vector**, must be determined.  The functions, `count`, `arrange` and `pull` can be used to do this.  
+
+```{r q09a, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
   count(Abbr) %>%
-  arrange(n)
+  arrange(n) %>%
+  pull(Abbr)
+abbr_order
+```
 
-abbr_order <- pull(abbr_count, Abbr)
+Now, we can use `abbr_order` with `scale_x_discrete` to specify the desired plotting order.  
+```{r q09b, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  count(Abbr) %>%
+  arrange(n) %>%
+  pull(Abbr)
 
-abbr_count %>%
+ar_exp %>%
   ggplot() +
-  aes(x=Abbr, y=n) +
-  geom_col() +
+  aes(x=Abbr) +
+  geom_bar() +
   scale_x_discrete(limits=abbr_order) +
   coord_flip() +
   ggtitle("Sample Counts for TCGA Studies") +
@@ -192,10 +214,16 @@ Try modifying the chunk above with `desc` and `arrange` to change the order of `
 Back to the original barplot.  This plot does not have much visual interest (and maybe it does not need to).  However, we can color the bars by tissue of origin by mapping the fill color of the bars to `Tissue`.  
 
 ```{r q10, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  count(Abbr) %>%
+  arrange(n) %>%
+  pull(Abbr)
+
 ar_exp %>%
   ggplot() +
   aes(x=Abbr, fill=Tissue) +
   geom_bar() +
+  scale_x_discrete(limits=abbr_order) +
   coord_flip() +
   ggtitle("Sample Counts for TCGA Studies") +
   theme(plot.title=element_text(hjust=0.5)) +
@@ -203,22 +231,28 @@ ar_exp %>%
   ylab("Sample Count")
 ```
 
-The default color palette is not very attractive.  We can tweak this a bit using `scale_fill_discrete` to adjust the **chroma** (intensity of color), `c`, and **luminance** (lightness), `l`.  
+The default color palette is pretty intense.  We can tweak this using `scale_fill_discrete` to adjust the **chroma** (intensity of color), `c`, and **luminance** (lightness), `l`.  
 
 ```{r q11, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  count(Abbr) %>%
+  arrange(n) %>%
+  pull(Abbr)
+
 ar_exp %>%
   ggplot() +
   aes(x=Abbr, fill=Tissue) +
   geom_bar() +
   coord_flip() +
+  scale_x_discrete(limits=abbr_order) +
   ggtitle("Sample Counts for TCGA Studies") +
   theme(plot.title=element_text(hjust=0.5)) +
   xlab("TCGA Study") +
   ylab("Sample Count") +
-  scale_fill_discrete(c=50, l=50)
+  scale_fill_discrete(c=70, l=70)
 ```
 
-Try changing the values for `c` and `l` to see how it affects the plot.  
+Change the values for `c` and `l` to see how it affects the colors.  
 
 There are many other ways to manipulate the plotting colors not covered in this tutorial.  
 
@@ -238,7 +272,15 @@ ar_exp %>%
 
 Again, the grouping variables are plotted in alphabetical order.  To plot in the order of `mean_AR`, you need to create a new **tibble** and use `scale_x_discrete` as shown above.  
 
-```{r q13, exercise=TRUE, exercise.startover=TRUE}
+```{r q13a, exercise=TRUE, exercise.startover=TRUE}
+ar_summary <- ar_exp %>%
+  group_by(Abbr) %>%
+  summarize(mean_AR=mean(Value)) %>%
+  arrange(mean_AR)
+ar_summary
+```
+
+```{r q13b, exercise=TRUE, exercise.startover=TRUE}
 ar_summary <- ar_exp %>%
   group_by(Abbr) %>%
   summarize(mean_AR=mean(Value)) %>%
@@ -253,6 +295,8 @@ ar_summary %>%
   coord_flip() +
   scale_x_discrete(limits=abbr_order)
 ```
+
+Edit the chunk above to color the bars by tissue.  **Hint**, you must include `Tissue` when you create `ar_summary`.  
 
 ## Adding Error Bars with `geom_errorbar`  
 
@@ -276,7 +320,7 @@ ar_summary %>%
   geom_errorbar()
 ```
 
-For this data, I consider "error bar" to be a misnomer.  The error bars encompass the range of -/+ one standard deviation or about 68% of the values for each cancer type (remember normal distributions for your statistics course?).  This is really a measure of biological and technical variation for AR expression in cancer tissues.  
+For this data, **error bar** is a misnomer.  The error bars encompass the range of -/+ one standard deviation or about 68% of the values for each cancer type (remember normal distributions for your statistics course?).  This is really a measure of biological and technical variation for AR expression in cancer tissues.  
 
 ## Boxplots with `geom_boxplot`  
 
@@ -284,7 +328,7 @@ For this data, I consider "error bar" to be a misnomer.  The error bars encompas
 
 To understand a **boxplot**, you must understand the concept of **quartiles**.  Imagine that your data is arranged on one variable.  Then, you divide your data into 4 groups each with an equal number observations.  These groups are named **quartiles**.  The bottom quartile (**Q1**) contains the 25% of observations that have the lowest values for the variable that you arranged on,  and the top quartile (**Q4**) contains the highest 25%.  
 
-Let's do a **boxplot** on the numbers `1:21` with the values also plotted as points.  The plot is also annotated to aid comprehension.  
+Let's do a **boxplot** on the numbers `1:21` with the values also plotted as points.  The plot is annotated to aid comprehension.  The code for this plot is not shown because plot annotation is beyond the scope of this tutorial.  
 
 ```{r eval=TRUE, echo=FALSE}
 tibble(Position=rep(1, 21), Value=1:21) %>%
@@ -346,22 +390,23 @@ In addition, many cancer types have an outlier at `-3.3`, and many of the whiske
 How can we aid viewer comprehension of this plot?  One way is to limit the amount of data by using `filter` before you send the data to `ggplot`.  
 
 ```{r q17, exercise=TRUE, exercise.startover=TRUE}
-ar_exp %>% filter(Tissue == "Urologic") %>%
+ar_exp %>% 
+  filter(Tissue == "Urologic") %>%
   ggplot() +
   aes(x=Abbr, y=Value) +
   geom_boxplot() +
   coord_flip()
 ```
 
-This illustrates how well data manipulation with **dplyr** and **magrittr** works with **ggplot2**.  You can quickly create a **boxplot** for different groups of cancers this way.  Perhaps, you might even create a multipanel figure.  
+This illustrates how well data manipulation with **tidyverse** works with **ggplot2**.  You can quickly create a **boxplot** for different groups of cancers this way.  Perhaps, you might even create a multipanel figure.  
 
 ## Creating Multipanel Figures with `facet_wrap`  
 
-Above, we filtered the data of `Tissue` to create a more focused plot.  You can rapidly create multipanel plots with **faceting**.  In a general sense, **faceting** is another way to group your data.  
+Above, we filtered the data on `Tissue` to create a more focused plot.  You can rapidly create multipanel plots with **faceting**.  In a general sense, **faceting** is another way to group your data.  
 
 In **ggplot2**, you can use `facet_wrap` to split your plot across multiple panels using a grouping variable.  The results are not necessarily publication quality, but it can be a great aid to data exploration.  
 
-The chunk below will facet the **boxplot** by `Tissue`.  Note the syntax used with the argument `facets`.  The tilde sign, `~`, is used to create formulas in **R**.  It tells **R** that we want to generate **boxplots** using `Tissue` as a grouping variable.  
+The chunk below will facet the **boxplot** by `Tissue`.  Note the syntax used with the argument `facets`.  The tilde sign, `~`, is **formula operator** in **R**.  It tells **R** that we want to generate **boxplots** using `Tissue` as a grouping variable.  
 
 In addition, the argument, `scale="free_y"`, prevents all cancer types from appearing in each panel.  
 
@@ -374,7 +419,7 @@ ar_exp %>%
   coord_flip()
 ```
 
-This is still quite a busy plot, and it does have some flaws.  For example, some tissues have only a single type of cancer, so there is only a single box.  However, this is fine for data exploration, especially since the x-axis is consistent across all plots.  
+This is still a busy plot, and it has flaws.  For example, some tissues have only a single type of cancer, so there is only a single box.  However, this is fine for data exploration, especially since the x-axis is consistent across all plots.  
 
 Try removing the argument `scale="free_y"` from the code chunk.  Note the effect on the plot.  
 
@@ -452,7 +497,7 @@ The result is a mess of overplotted points that are difficult to interpret.  We 
 
 We can't introduce this noise to `Value` because that would corrupt the data.  However, it is fine to jitter along the x-dimension because it will still be clear which points belong to which study.  
 
-The argument `width=0.1` specifies, as a proportion, how much noise to introduce.  Note that we have surpressed plotting of the outliers by `geom_boxplot` with the argument `outlier.shape=NA`.  Otherwise, the outliers would be plotted twice!  
+The argument `width=0.1` specifies, as a proportion, how much noise to introduce along the x-axis.  The argument `height=0` specifies no jitter along the y-axis that is mapped to `Value`.  The arguments `pch=21` specifies filled circular points for `geom_jitter`.  Finally, plotting of outliers by `geom_boxplot` has been eliminated with the argument `outlier.shape=NA`.  Otherwise, the outliers would be plotted twice!  
 
 ```{r q23, exercise=TRUE, exercise.startover=TRUE}
 abbr_order <- ar_exp %>%
@@ -468,14 +513,26 @@ ar_exp %>%
   scale_x_discrete(limits=abbr_order) +
   coord_flip() +
   scale_fill_discrete(c=80, l=60) +
-  geom_jitter(width=0.1, pch=21)
+  geom_jitter(width=0.1, height=0, pch=21)
 ```
 
 There are still so many points that they are difficult to discern.  The only remedy for that is to focus on specific studies.  
 
+Edit the chunk above to change the values for some of the arguments.  Use the help menu to determine other values for `pch`.  
+
+## Saving a Plot with `ggsave`  
+
+To save a plot, use the function `ggsave`.  By default, `ggsave` will save the last plot that you generated.  The output type is determined by the extension that you use in the file name, or you can explictily set the output thpe with the `device` argument.  
+
+The chunk below is an example `ggsave` expression.  However, it cannot be used in the context of this tutorial.  Try saving a plot by running this expression in RStudio.  
+
+```{r echo=TRUE, eval=FALSE}
+ggsave(filename="AR_Boxplot.jpg", width=6, height=6, units="in", dpi=300)
+```
+
 ## Quiz  
 
-Try to reproduce this plot by adapting the code chunk below.  Sorry, no hints this time.  
+Reproduce the following plot by editing the code chunk below.  Sorry, no hints this time.  
 
 ```{r echo=FALSE, eval=TRUE}
 abbr_order <- ar_exp %>%
@@ -513,3 +570,4 @@ ar_exp %>%
   geom_jitter(width=0.1, pch=21)
 ```
 
+The tutorial is packed with information.  However, we have only scratched the surface of **ggplot2**.  

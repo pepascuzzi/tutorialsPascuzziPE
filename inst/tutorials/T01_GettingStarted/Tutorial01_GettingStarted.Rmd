@@ -10,7 +10,6 @@ runtime: shiny_prerendered
 ```{r setup, eval=TRUE, echo=FALSE}
 library(learnr)
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(cache = FALSE)
 ```
 
 ## Introduction
@@ -36,6 +35,10 @@ Let's get started.  **R** is an interpreted computer language, so you can use **
 1 + 1
 ```
 
+*Change the numbers in the chunk above to perform your own calculations.*  
+
+After you run your code, click on the `Start Over` icon to reset the chunk to its original state.  
+
 What happens if you enter an incomplete **expression**?  Run the cell below to find out.  
 
 ```{r q2, exercise=TRUE, exercise.startover=TRUE}
@@ -43,6 +46,8 @@ What happens if you enter an incomplete **expression**?  Run the cell below to f
 ```
 
 In this tutorial, you get an error.  If you use **R** from the command line, the **R** app or **RStudio**, your **R** prompt will change from the greater than sign, `>`, to a plus sign, `+`.  This indicates that **R** is waiting for additional input.  More on this when we use **RStudio** directly.  
+
+*Complete the expression in the chunk above so that it does not cause an error.*  
 
 Back to arithmetic, like a calculator, arithmetic operations are executed in order of precedent.  This can be controlled with **parentheses**.  
 
@@ -56,7 +61,7 @@ Compare the above result to the following cell.
 (1 + 1) * 2
 ```
 
-As you can see, the **parentheses** change the result significantly. Do not forget these simple rules in your calculations! 
+As you can see, the **parentheses** change the result significantly. Do not forget these simple rules in your calculations!  
 
 Formulas can become quite complicated, and it can be easy to lose track of your **parentheses**. 
 
@@ -64,13 +69,15 @@ Formulas can become quite complicated, and it can be easy to lose track of your 
 ((1 + 1) * (2 - 1))/(10 - 2)
 ```
 
+*Edit the chunk above so that the result is `2.875`.*  
+
 A better way to do such calculations, especially if you need to reuse the formula, is to create **objects** and perform the calculations stepwise.  To do this, we must create **objects** and **assign** value(s) to them.  
 
 ## Creating Objects  
 
 The following cell will create an **object** named `x` with the value `2`.  An **object** is an **R** construct that contains data or information.  There are many **classes** of **R object**.  Some of the most common are **vectors**, **data frames** and **functions**.  
 
-There are two lines of code in the cell below.  The first line creates `x`, and the second line displays `x`.    Note that the value `2` is the result of an evaluated **expresssion**, `1 - 1`.
+There are two lines of code in the cell below.  The first line creates `x`, and the second line displays `x`.    Note that the value `2` is the result of an evaluated **expresssion**, `1 + 1`.
 
 ```{r q6, exercise=TRUE, exercise.startover=TRUE}
 x <- 1 + 1
@@ -81,14 +88,14 @@ The **assignment operator**, `<-`, is used to **assign** a value or values to an
 
 **NOTE - IT IS VERY EASY TO ACCIDENTALLY OVERWRITE AN OBJECT WITH A NEW VALUE! **
 
-Create an **object** named `y` and **assign** the value of `2 - 1` to it, and display `y`..
+The chunk below creates an **object** named `y` and **assigns** the value of `2 - 1` to it, then displays the value of `y`.  
 
 ```{r q7, exercise=TRUE, exercise.startover=TRUE}
 y <- 2 - 1
 y
 ```
 
-Write the **expression** in the cell below that will create an **object** named `z` that has the value of `10 - 2` and display `z`.  
+You try it.  Write the **expressions** in the cell below that creates an **object** named `z` that has the value of `10 - 2` and display `z`.  
 
 ```{r q8, exercise=TRUE, exercise.startover=TRUE}
 
@@ -246,10 +253,8 @@ While this cell will do a textual search for `"t.test"`.
 
 Time for a short quiz.  Use the help menu or try various answers as much as you want.  There is no penalty for multiple attempts.  If you are stuck, click the `Hints` button to get progressive hints.  The last hint is the answer.  
 
-
-
 ### Question 1
-#### Enter the expression that will search for help with `round`.
+#### Enter the expression that will search for help with `round`.  
 
 ```{r q19, exercise=TRUE, exercise.startover=TRUE}
 #Enter your code below.
@@ -268,7 +273,20 @@ help(round)
 ?round
 ```
 
-### Question 2
+### Question 2 
+#### In addition to `round`, there is information on this page about other functions.  This is common with R help pages.  What are these functions?  Check all that apply.  
+
+```{r q-2, echo=FALSE}
+question("",
+  answer("ceiling", correct=TRUE),
+  answer("floor", correct=TRUE),
+  answer("trunc", correct=TRUE),
+  answer("signif", correct=TRUE),
+  answer("average")
+)
+```
+
+### Question 3
 #### Enter the **expressions** that will round 10.22 to one decimal, and **assign** it to an **object** named `my_result` and display it.
 
 ```{r q20, exercise=TRUE, exercise.startover=TRUE}
@@ -291,7 +309,7 @@ my_result <- round(x=10.22)
 my_result <- round(x=10.22, digits=1)
 ```
 
-### Question 3
+### Question 4
 #### Enter the **expression** that will search for help with the exponent operator, `^`.
 
 ```{r q21, exercise=TRUE, exercise.startover=TRUE}
@@ -311,7 +329,7 @@ help(`^`)
 ?`^`
 ```
 
-### Question 4
+### Question 5
 #### Enter the **expression** that will multiply `my_result` by 2 then square it.  
 
 ```{r q4-setup, include=FALSE}
@@ -330,5 +348,5 @@ my_result <- round(x=10.22, digits=1)
 (my_result * 2) ^ 2
 ```
 
-This is the end of the tutorial.  You should be more comfortable working with R interactively, but you are just getting started.  If you are having problems, search the R help system.  If you still have questions, please post a question to the course Piazza site.  
+This is the end of the tutorial.  You should be more comfortable working with R interactively, but you are just getting started.  If you are having problems, search the R help system.  Remember that some help pages can point you to other functions that may be helpful for your problem.  
   
