@@ -25,9 +25,9 @@ knitr::opts_chunk$set(fig.height=6)
 
 ## Data Wrangling  
 
-Data wrangling, sometimes called data munging, is usually required before data analysis.  Common tasks include data cleaning (finding and fixing errors), data type conversion, adding derived variables or reformatting of data sets so that the data can be passed to a specific program or package.  
+This tutorial introduces data wrangling, a process sometimes called data munging.  Data wrangling is usually required before data analysis.  Common tasks include data cleaning (finding and fixing errors), data type conversion, adding derived variables or reformatting of data sets so that the data can be passed to a specific program or package.  
 
-This tutorial will introduce you to this often tedious task.  
+This tutorial also introduces one new plot and several new functions.  
 
 ## Learning Objectives  
 + Use a **histogram** to determine if a variable is normally distributed.  
@@ -58,25 +58,25 @@ ar_tissue <- read_delim(file="TCGA_Tissues.txt", delim="\t", col_names=TRUE)
 
 These three files were used to create the version of `ar_exp` that you used in Tutorial 5.  The current version is incomplete.  It is missing two variables (columns), `Tissue` and `Abbr`.  
 
+Browse the columns of the `tibble` to confirm this.  
+
 ```{r chunk01, exercise=TRUE, exercise.startover=TRUE}
 ar_exp
 ```
 
-In addition, the variable `Value` was **log2** transformed to so that it was normally distributed.  
-
-In this tutorial, you will learn how to change variables and add new variables to a **tibble**.  
+In addition, the variable `Value` was **log2** transformed for the previous tutorial.  In this tutorial, you will be shown why and how this was done.  
 
 ## Use `mutate` to Transform an Existing Variable  
 
-You will often need to make changes to a **tibble** such as adding a variable, transforming an existing variable, or creating a derived variable.  Generally, you will use the function `mutate` to make such changes.  This sounds like a radical process, but it is similar to creating a new column in Excel.  
+You will often need to make changes to a **tibble** such as adding a variable, transforming an existing variable, or creating a derived variable.  The function `mutate` is used to make such changes.  This sounds like a radical process, but it is similar to creating a new column in Excel.  
 
-In the **tibble** `ar_exp`, the variable named `Value` is a measure for the expression of the *AR* gene from a biochemistry experiment.  It is obtained by "counting" fragments of *AR* RNA (a molecule derived from the *AR* gene) with respect to fragments of RNA from other genes.  The units are **Counts Per Million (CPM)**, e.g. if a sample has 10 million RNA fragments and 1 million are from *AR*, then the `Value` is `0.1` CPM.  If the sample had 50 million RNA fragments and 5 million are from *AR* then the `Value` is still `0.1` CPM.  
+In the **tibble** `ar_exp`, the variable named `Value` is a measure for the expression of the *AR* gene from a next generation sequencing experiment named RNA-seq.  In RNA-seq, the expression of genes is "counted" by sequencing the RNA in the sample.  The counts for each gene are compared to the total counts for all genes to get the **Counts Per Million (CPM)**.  For example, if a sample has 10 million RNA fragments from all genes and 1000 are from *AR*, then the `Value` is `100` CPM.  If the sample had 50 million RNA fragments and 5000 are from *AR* then the `Value` is still `100` CPM.  
 
-Importantly, CPM data is often log2-transformed for certain types of analysis (although not generally for statistical analysis).  The reason is that simple CPM values do not generally have a normal distribution.  
+Importantly, CPM data is often log2-transformed for analysis (although not generally for statistical analysis).  The reason is that simple CPM values do not have a normal distribution.  
 
-First, we should confirm that `Value` has not already been log2 transformed (the transformation is so routine that it is often not document).  The `range` of `Value` will help us to determine this.  
+First, we should confirm that `Value` has not already been log2 transformed (the transformation is so routine that it is often not documented).  The `range` of `Value` will help us to determine this.  
 
-Remember, you should `pull` a variable from a **tibble** for many operations.  
+We can `pull` `Value` from the **tibble** and pipe it to `range`.  
 
 ```{r chunk02a, exercise=TRUE, exercise.startover=TRUE}
 ar_exp %>%
@@ -84,9 +84,9 @@ ar_exp %>%
   range()
 ```
 
-The fact that the minimum value is zero strongly suggests that `Value` has not been log-transformed.  Log-transformed gene expression data often has a negative minimum value because gene expression is frequently very low for some genes in some tissues.  **Important, this is an assumption based on solid knowledge about this particular data set.**  
+The fact that the minimum value is zero strongly suggests that `Value` has not been log-transformed.  Log-transformed gene expression data often has a negative minimum value because gene expression values below `1` CPM are common.  **Important, this is an assumption based on solid knowledge about this type of data.**  
 
-Samples with a `Value` of zero likely do not express this gene at all.  We can determine the smallest non-zero value by filtering-out the sample that are zero.  
+Samples with a `Value` of zero likely do not express this gene at all (or below the limit of detection).  We can determine the smallest non-zero value by filtering-out the sample that are zero.  
 
 ```{r chunk02b, exercise=TRUE, exercise.startover=TRUE}
 filter(ar_exp, !Value == 0) %>%
@@ -96,9 +96,13 @@ filter(ar_exp, !Value == 0) %>%
 
 Now we have the minimum `Value` for samples that appear to express the gene.  
 
-Another important issue to show that log-tranformation will normalize the data?  We can take a quick look at the distribution of `Value` with a **histogram**.  
+Another important issue, will log-tranformation normalize the data?  We can take a quick look at the distribution of `Value` with a **histogram**.  With a **histogram**, continuous variable like `Value` are grouped into **bins** of specific ranges.  Importantly, these bins must span the range of the values of the variable.  Generally, bins are of equal size, each bin covers 1% (100 bins) to 25% (4 bins) of the data range.  The number of values in each bin are the shown as a barplot.  
 
-I assume that you are familiar with a **histogram**.  If not, go to [The Data Visualization Catalogue (new tab)](https://datavizcatalogue.com){target="_blank"}, and locate the **histogram** for a quick refresher.  The **argument** `bins = 100` tells R that we want 100 bars in the plot.  We can use `geom_vline` to show the mean for the data.  The position of the mean with respect to the peak of a data distribution is one indication of skew.  
+If you are not familiar with **histograms**, go to [The Data Visualization Catalogue (new tab)](https://datavizcatalogue.com/methods/histogram.html){target="_blank"} for more information.  
+
+In the function `geom_histogram`, the **argument** `bins = 100` indicates that we want 100 bars in the plot.  Similar to `geom_bar`, do not map a variable to the **y aesthetic**.  That is used to show the counts in each bin.  
+
+The function `geom_vline` is used to show the mean for the data.  The position of the mean with respect to the peak of a data distribution is one indication of skew.  
 
 ```{r chunk04a, exercise=TRUE, exercise.startover=TRUE}
 mean_value <- ar_exp %>%
@@ -132,11 +136,13 @@ ar_exp %>%
   ggtitle("Histogram of AR Value")
 ```
 
-No, the mean is still to the right of the peak.  Therefore, `Value` should be log2-transformed.  However, we have zeroes in the data, and you cannot log transform zero!  We don't want to remove these samples because we assume that expression is below the limit of detection and not just **missing data**.  The is an assumption that is OK for our purposes.  
+No, the mean is still to the right of the peak.  Therefore, `Value` is not normally distributed, and log2-transformation may help with this.  
 
-The solution is to add a small constant to all values so that the zeroes are very small, but not zero.  We know that the actual non-zero minimum value is `0.2553` so we can use $1/100th$ of that, `0.002553`.  
+Another issue, we have zeroes in the data, and you cannot log transform zero!  We don't want to remove these samples because we assume that expression is below the limit of detection and not just **missing data**.  
 
-Let's make this transformation and repeat the **histogram** before we `mutate` the **tibble**.  You can actually do this when you map the variables with `aes`.  Remember to `log2` transform the data to calculate the mean for the annotation line!  
+The solution is to add a small constant to all values so that the zeroes are very small, but not zero.  We know that the actual non-zero minimum value is `0.2553` so we can use $1/100th$ of that, `0.002553`, as a "floor" for the transformation.  
+
+Let's make this transformation and repeat the **histogram** before we `mutate` the **tibble**.  You can do this when you map the variables with `aes`.  Remember to `log2` transform the data to calculate the mean for the annotation line!  
 
 ```{r chunk05, exercise=TRUE, exercise.startover=TRUE}
 mean_value <- ar_exp %>%
@@ -153,21 +159,38 @@ ar_exp %>%
   ggtitle("Histogram of AR Value")
 ```
 
-The distribution is roughly normal so we should proceed with the transformation.  
+The distribution is roughly normal so we should proceed with the transformation.  Note that the values that were zero appear as a peak to the left of the other values in the histogram.  
 
-The basic structure for a `mutate` expression is:  
+To transform `Value` in the **tibble**, we need to use `mutate`.  The basic structure for a `mutate` expression is:  
 
-`mutate(data, variable_name = value)`  
+`mutate(data, variable_name = vector)`  
 
-The `data` is a **tibble**, the `variable_name` should follow naming conventions, and `value` should have a value for every observation in the **tibble**.  
+* `data` is the name of a **tibble**, in our case, `ar_exp`
+* `variable_name` is the name for the column (variable) that you want to create or change, e.g. `Value`.
+* `vector` is one of the following
+  + an **expression** that use other columns (variables) from `data`, e.g. `log2(Value + 0.002553)`
+  + an actual **vector** of length equal to one or length equal to the number of rows in `data`.
 
-We could create a new variable named something like `Value_log2`, but for our purposes we should simply overwrite the existing variable.  In addition, we are going to overwrite the existing **tibble** as well.  
+We could create a new variable named something like `Value_log2`, but for our purposes we can simply transform the existing variable.  
 
-Note, this expression uses recursion twice!  `Value` is transformed from `Value`, `ar_exp` is overwritten from `ar_exp`.  The consequence is that this chunk will result in an error if you try to run it twice because you will attempt to log transform a negative value.  
+To make the changes introduced with `mutate` permanent, you must "overwrite" your existing **tibble**.  
 
 ```{r chunk06a, exercise=TRUE, exercise.startover=TRUE}
 ar_exp <- ar_exp %>%
-  mutate(Value=  log2(Value + 0.002553))
+  mutate(Value =  log2(Value + 0.002553))
+ar_exp
+```
+
+Alternatively, the calculations are performed outside the `mutate` expression to create a vector that is then used with `mutate`.  
+
+```{r chunk06aa, exercise=TRUE, exercise.startover=TRUE}
+Value_log2 <- ar_exp %>%
+  pull(Value) %>%
+  add(0.002553) %>%
+  log2()
+
+ar_exp <- ar_exp %>%
+  mutate(Value = Value_log2)
 ar_exp
 ```
 
@@ -193,9 +216,9 @@ ar_exp %>%
 
 ## Add a New Variable with `mutate`  
 
-The variable `Mutation` indicates the known mutation status for *AR* in the sample.  Most of the samples are either `Not Mutated` or `Not Sequenced`, but there are 90 samples that have specific mutations.  It is possible to extract these observations together with `filter`, but it does require a complex Boolean expression.  It will be helpful to have a new variable named `Mutation_Status` that simply indicates `Not Mutated`, `Not Sequenced` or `Mutated`.  
+The variable `Mutation` shows the known mutation status for *AR* in the sample.  Most of the samples are either `Not Mutated` or `Not Sequenced`, but there are 90 samples that have specific mutations.  It is possible to extract these observations together with `filter`, but it would require a complex Boolean expression.  It will be helpful to have a new variable named `Mutation_Status` that simply indicates `Not Mutated`, `Not Sequenced` or `Mutated`.  
 
-We will do this in two steps.  First, we will create a variable named `Mutation_Status` using the values in `Mutation`.  Then, we will use the function `replace` to replace the values that are NOT `Not Sequenced` AND are NOT `Not Mutated` with `Mutated`.  The tricky part here is to get the Boolean expression correct!  
+We will do this in two steps.  First, we will create a variable named `Mutation_Status` that has the value of `Undefined` for all samples.  Then, we will use the function `replace` to replace values that are NOT `Not Sequenced` AND are NOT `Not Mutated` with `Mutated` by refering back to `Mutation`.  The tricky part here is to get the Boolean expression correct!  
 
 The function `replace` is a **base R** function that requireds three arguments:  
 
@@ -207,23 +230,43 @@ Writing expressions like this requires practice, so please confirm your result. 
 
 ```{r chunk07a, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp01"}
 ar_exp <- ar_exp %>%
-  mutate(Mutation_Status = Mutation)
-count(ar_exp, Mutation_Status)
+  mutate(Mutation_Status = "Undefined")
+
+ar_exp %>%
+  count(Mutation_Status)
 ```
 
-Now, `Mutation_Status` has the same values as `Mutation`.  Now, we can use `replace` to change all values that ARE NOT `Not Sequenced` AND ARE NOT `Not Mutated` to `Mutated`.  
+First, we can use `replace` to change all values where `Mutation` IS NOT `Not Sequenced` AND IS NOT `Not Mutated` to `Mutated`.  
 
-```{r chunk07b, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp01"}
+```{r chunk07ba, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp01"}
 ar_exp <- ar_exp %>%
-  mutate(Mutation_Status = Mutation)%>%
+  mutate(Mutation_Status = "Undefined") %>%
   mutate(Mutation_Status = replace(x = Mutation_Status, 
-                                   list = (Mutation_Status != "Not Sequenced" & Mutation_Status != "Not Mutated"), 
+                                   list = (Mutation != "Not Sequenced" & Mutation != "Not Mutated"), 
                                    values = "Mutated"))
 ar_exp %>% 
   count(Mutation_Status)
 ```
 
-Now, all samples have a valid value for `Mutation_Status`.  We can use this new grouping variable to create a summary **tibble**.  
+Now, we can add code to replace values where `Mutation` is `Not Sequenced` and `Not Mutated`.  
+
+```{r chunk07bb, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp01"}
+ar_exp <- ar_exp %>%
+  mutate(Mutation_Status = "Undefined") %>%
+  mutate(Mutation_Status = replace(x = Mutation_Status, 
+                                   list = (Mutation != "Not Sequenced" & Mutation != "Not Mutated"), 
+                                   values = "Mutated")) %>%
+  mutate(Mutation_Status = replace(x = Mutation_Status, 
+                                   list = (Mutation == "Not Mutated"), 
+                                   values = "Not Mutated")) %>%
+  mutate(Mutation_Status = replace(x = Mutation_Status, 
+                                   list = (Mutation == "Not Sequenced"), 
+                                   values = "Not Sequenced"))
+ar_exp %>% 
+  count(Mutation_Status)
+```
+
+Now, all values in `Mutation_Status` have been replaced with one of our desired values.  Importantly, the `Undefined` values are gone.  Note, there are other ways to do operations like this, but this method is very clear and easy to follow.  
 
 ```{r prepare-arexp02, include=FALSE}
 ar_exp %<>%
@@ -235,17 +278,34 @@ ar_exp %<>%
                                    values = "Mutated"))
 ```
 
-```{r chunk08, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp02"}
+We can now use `Mutation_Status` to group the data to see if there is an apparent effect on AR expression.  
+
+```{r chunk08a, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp02"}
 ar_exp %>%
   group_by(Mutation_Status) %>%
   summarize(mean_AR=mean(Value))
 ```
 
-It is difficult to draw any conclusions from this data because there are so many samples that have not been sequenced.  
+It is difficult to draw any conclusions from this data because there are so many samples that have not been sequenced.  However, we can follow with a quick T-test.  
+
+```{r chunk08b, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp02"}
+value_mutated <- ar_exp %>%
+  filter(Mutation_Status == "Mutated") %>%
+  pull(Value)
+
+value_not <- ar_exp %>%
+  filter(Mutation_Status == "Not Mutated") %>%
+  pull(Value)
+
+my_ttest <- t.test(x=value_mutated, y=value_not, alternative="two.sided")
+my_ttest
+```
+
+There is a significant difference in the means of these groups.  
 
 ## Add Variables to a **Tibble** with `join`  
 
-New variables in a **tibble** can also be added from other **tibbles**.  We still need to add the tissue of origin and the official abbreviation for each cancer type.  Let's start with the tissue of origin.  A small text file was imported as a **tibble** named `ar_tissue` when you started the tutorial.  This **tibble** has two variables, `Study` and `Tissue`.  There are 30 rows, one for each `Study`.  
+New variables can also be added to a **tibble** from other **tibbles**.  With our data, we still need to add the tissue of origin and the official abbreviation for each cancer type.  Let's start with the tissue of origin.  A small text file was imported as a **tibble** named `ar_tissue` when you started the tutorial.  This **tibble** has two variables, `Study` and `Tissue`.  There are 30 rows, one for each `Study`.  
 
 ```{r chunk09, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp02"}
 ar_tissue
@@ -283,7 +343,7 @@ ar_exp <- left_join(x = ar_exp, y = ar_tissue, by="Study")
 
 ## Data Cleaning  
 
-We still need to add the official TCGA abbreviations for the cancer studies.  This data was scraped from a website to a text file, then imported as a **tibble** named `ar_abbr`.  
+We still need to add the official TCGA abbreviations for the cancer studies.  This data was scraped from a website to a text file, then imported as a **tibble** named `ar_abbr`.  There are no column names for this file, so R created the generic variable names `X1` and `X2`.  
 
 ```{r chunk11, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp03"}
 ar_abbr
@@ -291,11 +351,11 @@ ar_abbr
 
 There are multiple issues here:  
 
-1.  The column names are generic, and no names match with `ar_exp` so we do not have a **key**.  
-2.  There seems to be extra "whitespace" in the values for the abbrevations (might not be visible online).  
-3.  The values for the study names do not include (TCGA, Provisional ) as in `ar_exp`.  
+1.  The column names are generic, and no names match with `ar_exp` so we do not have a column to use as a **key**.  
+2.  There is extra "whitespace" in the values for the abbrevations (might not be visible online).  
+3.  The values for the study names do not include `(TCGA, Provisional )` as in `ar_exp`.  
 
-We can fix the column names with `rename`.  We must have a column named `Study` to use as a **key** with `left_join`.  
+We can fix the column names with `rename`.  We must have a column named `Study` in both **tibbles** to use as a **key** with `left_join`.  
 
 ```{r chunk12, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp03"}
 ar_abbr <- ar_abbr %>%
@@ -321,7 +381,7 @@ ar_abbr %<>%
 
 ## Remove Whitespace with `str_trim`  
 
-The second issue with the extra "whitespace" is quite common (How many times have you made a typo when working with Excel?), so there is a function named `str_trim` to help fix this (see the help menu for more information).  We can use `side = "both"` to remove both leading and trailing whitespace.  
+The second issue with the extra "whitespace" is quite common (How many times have you introduced unneeded spaces working in Excel?), so there is a function named `str_trim` to that can fix this (see the help menu for more information).  We can use `side = "both"` to remove both leading and trailing whitespace.  
 
 Here, we need to use it with `mutate`.  Again, the issue might not be visible when you run the tutorial.  
 
@@ -349,13 +409,13 @@ ar_abbr %<>%
   mutate(Abbr = str_trim(Abbr, side="both"))
 ```
 
-What about the study names?  We could add "(TCGA, Provisional)" to `Study` in `ar_abbr` or we could remove it from `Study` in `ar_exp`.  The latter seems more reasonable given that the information is redundant.  All studies in this data set are TCGA, Provisional so we can document this in other ways.  
+What about the study names?  We could add `(TCGA, Provisional)` to `Study` in `ar_abbr` or we could remove it from `Study` in `ar_exp`.  The latter seems more reasonable given that the information is redundant.  All studies in this data set are `TCGA, Provisional`, and we can document that in other ways.  
 
 ## Replace a Pattern with `str_replace`  
 
 There are several ways to do this.  One of the easiest is to use `str_replace` to replace the **character pattern** `"(TCGA, Provisional)"` with empty space, `""`.  
 
-The difficulty here is that parenthesis are an important syntax symbol in **R** so we need to "escape" the parenthesis using double backslashes like this, `\\(`.  This way **R** will ignore the parentheses as syntax, treating it just like another character.  
+The difficulty here is that parenthesis are an important syntax symbol in **R** so we need to "escape" the parenthesis using double backslashes like this, `\\(`.  This way **R** will ignore the parentheses as syntax, treating it just like another character.  There will be more on **escape characters** in a later tutorial.  
 
 In addition, we are following up the `str_replace` with `str_trim` to remove any whitespace that has been introduced.  
 
@@ -401,8 +461,11 @@ Something is wrong because many studies do not have a matching abbreviation!  Le
 We can extract the values from both **tibbles** and visually assess.  
 
 ```{r chunk16, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-arexp06"}
-pull(ar_abbr, Study) %>% sort()
-pull(ar_exp, Study) %>% unique() %>% sort()
+pull(ar_abbr, Study) %>% 
+  sort()
+pull(ar_exp, Study) %>% 
+  unique() %>% 
+  sort()
 ```
 
 One problem is the inconsistent use of capitalization in the study names.  This seems like a minor issue, but many programming languages are sensitive to capitalization, `"Breast Invasive Carcinoma" == "Breast invasive carcinoma"` is `FALSE` in **R**!  
@@ -450,7 +513,7 @@ ar_abbr %<>%
 ar_exp <- left_join(ar_exp, ar_abbr, by="Study")
 ```
 
-By default, **character vectors** such as `Study` are ordered alphabetically.  In Tutorial 05, you learned how to force an arrangement of `Study` for the boxplots using `scale_x_discrete`.  A better way to do this is to convert `Study` to an **ordered factor** (also called an **ordinal variable**).  \
+By default, **character vectors** such as `Study` are ordered alphabetically.  In Tutorial 05, you learned how arrange the values for `Study` in the boxplots using `scale_x_discrete`.  A better way to do this is to convert `Study` to an **ordered factor** (also called an **ordinal variable**).  
 
 In this case, the order will be determined by the mean expression of *AR* across the samples for each `Study`.  
 
@@ -542,6 +605,8 @@ ar_exp %>%
   scale_fill_discrete(c=80, l=60) +
   geom_jitter(width=0.1, pch=21)
 ```
+
+This is the end of the tutorial.  There is a lot of information here, but it has been shown in the context of a practical example of data wrangling.  
 
 ## Quiz  
 
@@ -682,7 +747,7 @@ mammal_sleep %>%
 
 ### Question 5
 
-#### Starting with the character vector named `departments`, write a **pipe** that will standardize the entries so that `Biochemistry` is always shown as `Biochemistry`, `Department` as `Department`, and `Purdue University` as `Purdue University` with no parentheses.  The first letter of each word should be capitalized.  Also, remove all leading and trailing whitespace!  Hint, parentheses and periods are syntax characters.  
+#### Starting with the character vector named `departments`, write a **pipe** that will standardize the values so that `Biochemistry` is always shown as `Biochemistry`, `Department` as `Department`, and `Purdue University` as `Purdue University` with no parentheses.  The first letter of each word should be capitalized.  Also, remove all leading and trailing whitespace!  Hint, you must precede parethesis and periods with double backslashes.  
 
 ```{r prepare-question5, include=FALSE}
 units <- c("Bioc.", " Biochemistry", " Biochem.", "biochemistry") %>%
@@ -727,7 +792,7 @@ departments %>%
   str_trim(side="both")
 ```
 
-This is the end of the tutorial.  Late tutorials will include more functions to help you wrangle data.  
+This is the end of the tutorial.  Later tutorials will include more functions to help you wrangle data.  
 
 ## Session Information  
 

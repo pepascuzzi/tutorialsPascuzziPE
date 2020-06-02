@@ -55,9 +55,22 @@ Collectively, these components can be used to produce standard plot types such a
 You generally need three expressions to create a plot:  
 
 1.  `ggplot`initializes the plot using the specified data object (a **tibble** or **data frame**).  
-2.  `aes` is used to map variables from the data to visual properties such as axes, colors or point types.  
-3.  A `geom` family function creates the specified plot type from the data using the aesthetic mappings.  
-
+2.  `aes` is used to map variables from the data to visual aesthetics or dimensions such as axes, colors or point types.  Available aesthetics are determined by the type of plot, but common aesthetics include:  
+    a. `x` - x axis.  
+    b. `y` - y axis.  
+    c. `color` - color of solid points and lines.  
+    d. `fill` - fill for bars, boxes of filled points.  
+    e. `shape` - shape of points (see help for `points`).  
+    f. `size` - size of points.  
+    g. `alpha` - transparency of color.  
+  
+3.  A `geom` family function creates the specified plot type from the data using the aesthetic mappings.  Common examples are:  
+    a. `geom_bar` - barplot of counts.  
+    b. `geom_col` - barplot of numeric data.  
+    c. `geom_boxplot` - boxplots.  
+    d. `geom_point` - scatterplots.  
+    e. `geom_histogram` - histograms.  
+  
 These steps are joined with the addition operator, `+`, adding new layers of information to the initialized plot.  Many other plot options such as the style of the axes, background and labels will be handled by default values.  Tweaking these minor aesthetic elements is often more complicated, as you will see.  
 
 ## AR Expression in Cancer Types  

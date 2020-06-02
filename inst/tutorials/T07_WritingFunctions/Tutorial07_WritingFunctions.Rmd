@@ -1,0 +1,514 @@
+---
+title: "Writing Functions"
+author:
+- name: Pete E. Pascuzzi
+  affiliation: Purdue University
+runtime: shiny_prerendered
+output: learnr::tutorial
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(magrittr)
+library(pheatmap)
+gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", skip=2, delim="\t", col_types="ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", na=c("", "NA", "na"))
+knitr::opts_chunk$set(fig.width=8)
+knitr::opts_chunk$set(fig.height=8)
+```
+
+## Introduction  
+
+This tutorial covers an important topic in  **R programming**: **writing functions**.  You can do a lot of data science in **R** without writing your own functions, but your work will be more efficient if you can make your code adaptable to other situations.  
+
+You have used many **base R** and **tidyverse** functions.  These functions exist because a developer realized that they had computer code that would be useful in other situations, not merely in their own use case.  For example, would you want to write the code to calculate the log of a number or simply use the `log` function?  
+
+This developer generalized their code, providing multiple **arguments** that other users might need for the function to be useful.  In **R**, these functions are often shared as part of a larger **package**, but you can find **R functions** on **GitHub** or posted on blogs and forums.  
+
+The importance of **function writing** is demonstrated in this tutorial by the need to `rename` many columns in a data set for tissue-specific gene expression.  The data was downloaded from the **Genotype-Tissue Expression Portal**.  Go to the [GTEx Top 50 Expressed Genes Page](https://gtexportal.org/home/topExpressedGenePage){target="_blank"} to learn more about this great database.  
+
+The data set has 50,000 rows and 55 columns, and most of the column names contains special characters that need to be removed to make analysis easier.  You already know how to use `rename`, but would you want to type 55 `new_name = old_name` pairs?  There is a related function named `rename_all`, but it requires a **renaming function**
+
+This tutorial will demonstrate how to write a **function** that can be used to with `rename_all` to remove all special characters from the GTEx variable names.  Given the task, you will also learn functions that allow you to manipulate **character strings**.  
+
+## Learning Objectives  
++ Replace **character patterns** in a **character string**.  
++ Understand when to use escape characters.  
++ Create a **regular expression** that can recognize multiple patterns.  
++ Identify the parts of an **R function**.  
++ Write an **R function** that can manipulate character strings or numbers.  
++ Use `rename_all` to quickly fix bad column names in tibbles.  
+
+## Import Data  
+
+The version 7 **GTEx** data for gene expression in transcripts per million (TPM). **GTEx** has many samples for each tissue, and these have been **grouped** and **summarized** to create a median TPM for each gene in each tissue.  There is more information at **GTEx** for how this data was produced.  
+
+The data was imported as a **tibble** when the tutorial was lauched.  Note that this file has both `gct` and `gz` extensions.  A `gct` file is a tab-delimited plain text file that contains results from a gene expression experiment.  The `gz` extension indicates that the file was compressed by **gzip** software to save disk space.  Even compressed, this is a large file (nearly 5 MB).  Fortunately, R can import the file without "unzipping" it.  
+
+To read a large file quickly, it is important to use the `col_types` argument that indicates the **data type** for each column.  Additionally, the **character patterns** that should be imported as `NA` should be specified to speed the import.  Refer to **Tutorial 4** for more information.  
+
+The argument `skip=2` was required because the first two lines of the file contain information for specific software (an no consistent comment character was used).  
+
+The code used to import the data is shown below.  This chunk cannot be run.  
+
+```{r eval=FALSE, echo=TRUE}
+gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", 
+                          skip=2,
+                          delim="\t",
+                          col_types="ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", 
+                          na=c("", "NA", "na"))
+```
+
+Use `slice` to display the first ten rows of the **tibble** to perform a visual check.  Note, if you try to display too many rows, the tutorial may crash!  
+
+```{r chunk01a, exercise=TRUE, exercise.startover=TRUE}
+gtex_median %>%
+  slice(1:10)
+```
+
+For a large file, it can be important to examine the last rows of the data (use a negative integers with `slice`).  If the file is sorted in any way, unusual values may occur in these rows.  
+
+```{r chunk01b, exercise=TRUE, exercise.startover=TRUE}
+gtex_median %>%
+  slice(-1:-10)
+```
+
+The data seems fine, but the column names are problematic because they have many special characters.  For example `Adipose - Visceral (Omentum)` has spaces, parentheses and a dash!  Other names are also inconsistent in the use of capital letters.  
+
+## Fix Column Names  
+
+The current column names use spaces so that users can discern the individual words in the tissue.  There are also many special characters.  We need to remove all of these.  There are two tasks that we need to do to make better column names:  
+
+1. Use `str_to_title` so that all words in the names start with a capital letter.  
+2. Use `str_replace_all` to replace all occurrences of special characters with empty space, `""`.  
+
+We could use `rename` and type-out each of these changes, but that is tedious!  Let's find a column name that has all problems and write R code that will fix that example.  The tissue `Brain - Anterior cingulate cortex (BA24)` has all issues that we need to be fixed.  
+
+Let's create a **character vector** with this column name.  
+
+```{r chunk02, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+bad_colname
+```
+
+## Changing Character Case  
+
+Before we remove any special characters, we should convert to **title case** while **R** can still discern individual words.  This way, when the special characters are replaced with empty space, the variable names will be in **CamelCase** (also called **Pascal Case**), with the first letter of each work capitalized.  FYI, the first letter of **camelCase** is sometimes not capitalized.  **CamelCase** makes multi-word names easier to read.  
+
+Here is a small table of common naming conventions.  Originally, **Camel Case** referred to the second convention below, and there was no need for the term **Semi Camel Case**.  
+
+Convention Name | Description | Example
+:-----|:-----|:-----
+**Camel Case**|First letter of each word capitalized|`CamelCase`
+**Camel Case**|First letter of each word capitalized except the first|`camelCase`
+**Semi Camel Case**|First letter of each word capitalized except the first|`semiCamelCase`
+**Pascal Case**|First letter of each word capitalized|`PascalCase`
+**Snake Case**|Words separated by underscores|`Snake_Case`
+
+Back to the task.  We can use `str_to_title` to start the conversion to **Camel Case**.  
+
+```{r prepare-prep01, include=FALSE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+```
+
+```{r chunk03, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep01"}
+bad_colname <- bad_colname %>% 
+  str_to_title()
+bad_colname
+```
+
+## Replacing Patterns  
+
+The `a` in `Ba24` is no longer capitalized, but that is not a major issue.  Now, we can replace the special characters with **empty space**, `""` (not **whitespace**, `" "`).  We need to replace the dash, parenthesis and whitespace.  The dash and whitespace are easy to replace.  However, you must use `str_replace_all` and not `str_replace` because we need to replace all occurrences not simply the first one.  
+
+```{r prepare-prep02a, include=FALSE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+bad_colname %<>% 
+  str_to_title()
+```
+
+```{r chunk04a, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02a"}
+bad_colname <- bad_colname %>% 
+  str_replace_all(pattern="-", replacement="") %>%
+  str_replace_all(pattern=" ", replacement="")
+bad_colname
+```
+
+```{r prepare-prep02b, include=FALSE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+bad_colname %<>% 
+  str_to_title() %>%
+  str_replace_all(pattern="-", replacement="") %>%
+  str_replace_all(pattern=" ", replacement="")
+```
+
+Quick exercises:
+
+1. Edit the chunk above to use `str_replace` rather than `str_replace_all`.  What happened?  
+2. Edit the chunk above so that `str_to_title()` is the last expression in the pipe.  What happened?  
+
+Now, let's try to replace the parenthesis, `)`.  
+
+```{r chunk04b, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02b"}
+bad_colname <- bad_colname %>% 
+  str_replace_all(pattern="(", replacement="")
+bad_colname
+```
+
+The error is difficult to interpret, but it is caused by the fact that parentheses are used for syntax in R.  To use them in a **character pattern**, the syntax must be "escaped" with a backslash, `\`.  However, backslashes are also used to create other **escape characters**.  
+
+**Escape characters** are used in computing to invoke an alternate intepretation for the character that follows, e.g. `\t` is not a small `t` but a `tab`.  **Escape characters** are analogous to the **control** key on your computer.  
+
+If we precede the parenthesis with a backslash, `\(`, R will look for an alternate interpretation for the parenthesis.  However, there is no recognized **escape character**, `\(`, so you will get another error (try it in the chunk above).  
+
+To specify simply the parentheses character in a **character pattern**, you must precede it with two back slashes, `\\(`.  This "escapes" the normal intepretation of a parenthesis and "escapes" the **escape character** interpretation.  Many, but not all, special characters used in R syntax must be treated this way when used in character patterns.  
+
+```{r chunk04c, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02b"}
+bad_colname <- bad_colname %>% 
+  str_replace_all(pattern="\\)", replacement="") %>%
+  str_replace_all(pattern="\\(", replacement="")
+bad_colname
+```
+
+We now have a **pipe** that can fix the current bad name.  
+
+```{r chunk04d, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02b"}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+bad_colname %<>% 
+  str_to_title() %>%
+  str_replace_all(pattern="-", replacement="") %>%
+  str_replace_all(pattern=" ", replacement="") %>% 
+  str_replace_all(pattern="\\)", replacement="") %>%
+  str_replace_all(pattern="\\(", replacement="")
+bad_colname
+```
+
+Can we simplify the code by using a vector of patterns?  
+
+```{r chunk05, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+my_patterns <- c("-", "\\(", "\\)", " ")
+bad_colname %<>% 
+  str_to_title() %>%
+  str_replace_all(pattern=my_patterns, replacement="")
+bad_colname
+```
+
+No.  This does not work because **R** enforces the **Vector Recycling Rule**--the result will always be the same length as the longest input **vector**.  We supplied four patterns, so R recycled both the input **string** and **replacement**!  
+
+## Regular Expressions  
+
+To replace multiple patterns in a single string we must use a **regular expression**.  In this case, that means creating a single string where each pattern is separated by the **or** operator, `|`.  
+
+We need to replace `-` **or** `\\(` **or** `\\)` **or** ` `, so the **regular expression** is `-|\\(|\\)| `.  Note that the escape backslashes must be included!  
+
+```{r chunk06, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+my_patterns <- "-|\\(|\\)| "
+bad_colname <- bad_colname %>% 
+  str_to_title() %>%
+  str_replace_all(pattern=my_patterns, replacement="")
+bad_colname
+```
+
+This works.  This pipe is essentially a two step function.  It requires an input string and a patterns string.  It will return the input string in **CamelCase** with the patterns replaced with empty space.  
+
+We have 52 other columns that need to pass through this pipe.  Will the pipe accept a vector of names?
+
+```{r chunk07, exercise=TRUE, exercise.startover=TRUE}
+bad_colname <- colnames(gtex_median)[3:55]
+my_patterns <- "-|\\(|\\)| "
+bad_colname <- bad_colname %>% 
+  str_to_title() %>%
+  str_replace_all(pattern=my_patterns, replacement="")
+bad_colname
+```
+
+Yes, but we have not yet fixed the columns in the tibble!  To do this efficiently, we must write a **function** to use with `rename_all`.  
+
+## Writing Functions  
+
+You use `function` to create a **function**.  There are several required components:  
+
+1.  A **name** for the function (if you want to re-use the function).  
+2.  The `arglist` is the list of **arguments** that your function needs.  
+3.  One or more **expressions** called the **body** of the function.  
+3.  A `value` that is returned.  
+
+Here is the generic syntax for a **function**.  Curly braces**, `{}`, are used to group the expressions of the function.  
+
+`function_name <- function(arglist){`  
+      `expressions / body`  
+      `return(value)`  
+`}`  
+
+The chunk below has a simple function that will take a name in `"first name <space> last name"` format and return it as `"last name, first name"`.  I have not used the pipe operator in the body of the function because functions are frequently too complicated for simple linear pipes.  
+
+Critically, remember to `return` a value at the last step!  None of the intermediate objects will be saved after the function is called, i.e. `out_name` in the function below is not saved to your working environment!  Rather it is returned as a result to create an object that the function user has named.  
+
+```{r chunk08, exercise=TRUE, exercise.startover=TRUE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+```
+
+Now, we can test the function.  Note that the call to `last_first` is saved as `changed_name` (chosen by the function user), and not `out_name` which exists only in the body of the function.  
+
+```{r prepare-prep03, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+```
+
+```{r chunk09a, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+changed_name <- last_first("Jane Doe")
+changed_name
+```
+
+Importantly, this function will work for any first name last name string.  
+
+```{r chunk09b, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+changed_name <- last_first("John Smith")
+changed_name
+```
+
+This simple function assumes that the information will be entered correctly.  More sophisticated functions will make sure that the input is valid before manipulating the data.  
+
+So, the function `last_first` will produce an unwanted result if the input format is not correct.  
+
+```{r chunk09c, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+changed_name <- last_first("Smith, John")
+changed_name
+```
+
+## Writing a Renaming Function  
+
+Now, let's create a function that can be used to fix the bad column names in our **tibble**.  
+
+To create a function, the first thing that you should do is determine the **arguments** that are required.  For the "column name fixer", we need three arguments:  
+
+1.  `in_string` - an input string with the bad column names.  
+2.  `in_pattern` - the bad patterns to detect in the string.  
+3.  `in_replace` - a replacement pattern for the bad patterns.  
+
+The names for the **arguments** are not critical, but each **argument** must be used in the function body.  
+
+The function in the chunk below is very similar to the pipe that we created above.  However, the pipe operator has been replaced with a stepwise series of expressions.  
+
+```{r chunk10, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+colname_fixer <- function(in_string, in_pattern, in_replace){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replace)
+  return(out_string)
+}
+```
+
+Now we can test the function.  
+
+```{r prepare-prep04, include=FALSE}
+last_first <- function(name){
+  out_name <- str_split(name, pattern=" ", simplify=TRUE)
+  out_name <- rev(out_name)
+  out_name <- str_c(out_name, collapse=", ")
+  return(out_name)
+}
+
+colname_fixer <- function(in_string, in_pattern, in_replace){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replace)
+  return(out_string)
+}
+```
+
+```{r chunk11, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+bad_colname <- "Brain - Anterior cingulate cortex (BA24)"
+colname_fixer(in_string=bad_colname, in_pattern="-|\\(|\\)| ", in_replace="")
+```
+
+The result is exactly what we wanted.  
+
+All of the functions that we used in the body of our function are vectorized, so our function should be vectorized as well.  
+
+Let's try the first five column names.  
+
+```{r chunk12, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+bad_colname <- colnames(gtex_median)[1:5]
+colname_fixer(in_string=bad_colname, in_pattern="-|\\(|\\)| ", in_replace="")
+```
+
+That works!  
+
+## Rename All Columns in a Tibble  
+
+Now, we can easily fix all column names in the tibble, `gtex_median`, using the function `rename_all`.  It requires two arguments:  
+
+1. A **tibble** with the columns that need renamed.  
+2. A "renaming" function to use on each column name.  
+
+The function `colname_fixer` should work as a "renaming" function.  We can use the function and specify the required arguments, `in_pattern` and `in_replacement`.  
+
+```{r chunk13, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+gtex_median <- gtex_median %>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replace="")
+slice(gtex_median, 1:10)
+```
+
+That worked!  This can save a lot of time on data sets with a large number of variables.  
+
+## Saving a Function for Future Use  
+
+To use `colname_fixer` in other projects, you can create a plain R script, i.e. `.R` file, with the function code.  This will be a **source file** for `colname_fixer`.  Save this file in an easy to specify location, e.g. `~/Rscripts`, using the name of the function.  If you want to use `colname_fixer`, simply include and run `source("~/Rscripts/colname_fixer.R")` in your code, and `colname_fixer` will be available.  
+
+The chunk below contains the code in my `colname_fixer.R` file.  The first line determines if the package **stringr** is active.  If not, **stringr** will be loaded.  
+
+```{r eval=FALSE}
+require(stringr)
+colname_fixer <- function(in_string, in_pattern, in_replacement){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replacement)
+  return(out_string)
+}
+```
+
+This is the end of the tutorial.  Functions are extremely important in coding.  This tutorial used a very practical example that manipulated character strings to rename variable in a tibble.  The basic principals apply to all types of data.  
+
+## Quiz  
+
+### Question 1
+
+Use `str_replace_all` and a **regular expression** to replace all special characters, separating "words"  with underscores, `_`, (snake case) in the following bad variable name.  You do not need to change the case of the characters.  Hint, patterns can contain more than one character!  
+
+```{r prepare-question1, include=FALSE}
+bad_name <- c("NCI-60, K-562 (leukemia")
+```
+
+```{r quiz1, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-question1"}
+bad_name <- c("NCI-60, K-562 (leukemia")
+```
+
+```{r quiz1-hint-1}
+my_expression <- c("")
+```
+
+```{r quiz1-hint-2}
+my_expression <- c("-|")
+```
+
+```{r quiz1-hint-3}
+my_expression <- c("-|, |")
+```
+
+```{r quiz1-hint-4}
+my_expression <- c("-|, |-| \\(|\\)")
+```
+
+```{r quiz1-hint-5}
+my_expression <- c("-|, |-| \\(|\\)")
+good_name <- bad_name %>%
+  str_replace_all(string=., pattern=my_expression, replacement="_")
+good_name
+```
+
+### Question 2
+
+Some developers write functions strictly for convenience.  For example, `read_delim` has many arguments to handle many formats and data types.  However, you may use a specific format many times, and you simply want to save `read_delim` with specific arguments as a new function.  
+
+For example, **BED** files are a specific type of plain text file used in bioinformatics.  The variables are always **tab-delimited**, but a **BED** file may have as many as 12 columns (variables).  Only three columns are required.  Six column **BED** files are quite common.  However, **BED** files should never include column names!  It is assummed that you know the names of the columns.  
+
+Here are the columns and data types for a 6-column **BED** file.  
+
+Column Position|Column Name|Description|Data Type
+:-----|:-----|:-----|:-----
+1|**chrom**|chromosome name|character
+2|**chromStart**|start cooordinate of genomic feature|integer
+3|**chromEnd**|end cooordinate of genomic feature|integer
+4|**name**|name of the genomic feature|character
+5|**score**|score for genomic feature|numeric
+6|**strand**|chromosome strand|character
+
+Here is the code to read a 3-column **BED** file as a **tibble**.  
+
+```{r eval=FALSE}
+read_bed3 <- function(file){
+  my_bed <- read_delim(file=file, delim="\t", 
+                       col_names=c("chrom", "chromStart", "chromEnd"), 
+                       col_types="cii")
+  return(my_bed)
+}
+```
+
+What **arguments** would you need to include in the function definition so that it could read 3- or 6-column **BED** files?  
+
+```{r quiz2, echo=FALSE}
+question("", type="multiple",
+  answer("file", correct=TRUE),
+  answer("col_names", correct=TRUE),
+  answer("delim",correct=FALSE),
+  answer("col_types", correct=TRUE)
+)
+```
+
+### Question 3
+
+What is the major problem with this function?  
+
+```{r}
+my_function <- function(x, y){
+  my_result <- str_c(x, y, sep="_")
+}
+```
+
+```{r quiz3, echo=FALSE}
+question("", type="multiple",
+  answer("The function serves no purpose.", correct=FALSE),
+  answer("The argument sep is not an argument that can be changed.", correct=FALSE),
+  answer("The arguments x and y have no default values.",correct=FALSE),
+  answer("No value is returned", correct=TRUE)
+)
+```
+
+### Question 4
+
+What is the major problem with this function?  
+
+```{r}
+my_function <- function(x, y, z){
+  my_result <- str_c(x, y, sep="_")
+  my_result <- rep(my_result, 10)
+  return(my_result)
+}
+```
+
+```{r quiz4, echo=FALSE}
+question("", type="multiple",
+  answer("The function serves no purpose.", correct=FALSE),
+  answer("The result would be too big.", correct=FALSE),
+  answer("The arguments x, y and z have no default values.",correct=FALSE),
+  answer("The argument z was never used", correct=TRUE)
+)
+```
+
+### Question 5
+
+To reuse a function, you save it as a plain R script in your current directory, e.g. `myFunction.R`.  To use the function, you should do which of the following?  
+
+```{r quiz5, echo=FALSE}
+question("", type="multiple",
+  answer("Use read_delim.", correct=FALSE),
+  answer("Use load.", correct=FALSE),
+  answer("Use source.",correct=TRUE),
+  answer("Open the file in the editor and copy and past the function code into your source file.", correct=FALSE)
+)
+```
+
+
+```{r}
+sessionInfo()
+```
+

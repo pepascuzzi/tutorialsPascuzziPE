@@ -1,0 +1,344 @@
+---
+title: "Using Lapply"
+author:
+- name: Pete E. Pascuzzi
+  affiliation: Purdue University
+runtime: shiny_prerendered
+output: learnr::tutorial
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(magrittr)
+library(pheatmap)
+##########################
+gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", skip=2, delim="\t", col_types="ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", na=c("", "NA", "na"))
+##########################
+colname_fixer <- function(in_string, in_pattern, in_replace){
+  out_string <- str_to_title(in_string)
+  out_string <- str_replace_all(string=out_string, pattern=in_pattern, replacement=in_replace)
+  return(out_string)
+}
+##########################
+gtex_median <- gtex_median %>% 
+  rename_all(colname_fixer, in_pattern="-|\\(|\\)| ", in_replace="")
+##########################
+knitr::opts_chunk$set(fig.width=8)
+knitr::opts_chunk$set(fig.height=8)
+```
+
+## Introduction  
+
+The tutorial, `Tutorial07_WritingFunctions`, showed you how to write a simple function to use with `rename_all` to replace the special characters in the column names of the GTEx data set.  
+
+This tutorial builds on the functions to show you how to write a function that will extract the top 50 highest expressing genes for all 53 tissues in the GTEx data.  
+
+## Learning Objectives  
++ Use `filter` and `str_detect` to remove unwanted observations for a dataset.  
++ Create a `function` to extract GTEx gene expression data.  
++ Manipulate **tibble** column names in functions.  
++ Understand the basic concept of an **R list**.  
++ Use `lapply` on a **list** to use a function on multiple elements.  
+
+## Import Data  
+
+The GTEx data was imported as a **tibble** named `gtex_median` when you started the tutorial.  The column names have also been fixed.  
+
+Here are the first ten rows of the data.  
+
+```{r chunk01, exercise=TRUE, exercise.startover=TRUE}
+gtex_median %>%
+  slice(1:10)
+```
+
+## Creating Functions  
+
+You use `function` to create a **function**.  There are several required components:  
+
+1.  A **name** for the function (if you want to re-use the function).  
+2.  The `arglist` is the list of **arguments** that your function needs.  
+3.  One or more **expressions** called the **body** of the function.  
+3.  A `value` that is returned.  
+
+Here is the generic syntax for a **function**.  
+
+`function_name <- function(arglist){`  
+      `expressions / body`  
+      `return(value)`  
+`}`  
+
+## Determining the Top 50 Genes for Each Tissue  
+
+The **GTEx Portal** [external link](https://www.gtexportal.org/home/){target="_blank"} has several ways for you to explore gene expression by tissue.  The "Top 50 Expressed Genes" tool creates heatmaps of gene expression based on a tissue that you select.  This tool does not have a way for you to download all of the data.  In addition, mitochondrial genes are excluded but ribosomal genes are not.  
+
+You can download "Top" gene lists by browsing gene expression by tissue.  However, you only get the data for the particular tissue that you are browsing.  It would be tedious to get the top 50 genes for each tissue and the expression levels in all other tissues (to determine specificity).  
+
+We want to do the following.  
+
+1. Eliminate all mitochondrial and ribosomal genes from the top 50 gene lists.  
+2. Extract the top 50 genes for each tissue and save for further analysis.  
+
+## Identifying Mitochondrial and Ribosomal Genes
+
+The HUGO gene nomenclature [external link](https://www.genenames.org/){target="_blank"} makes it easy to remove both the ribosomal protein genes and the mitochondrial genes using text patterns in the gene symbols (`Description`)--genes that encode proteins for the large subunit of the ribosome have `RPL` in their name, and genes that encode proteins for the small subunit have `RPS` in their name.  Likewise, mitochondrial genes have `MT-` in their symbol.  
+
+We can use `str_detect` and the **not** operator, `!`, to remove rows with `RPL`, `RPS` or `MT-` in `Description` (the column name that GTEx chose to use for symbol).  
+
+How many of these genes are in the GTEx data?
+
+```{r chunk02, exercise=TRUE, exercise.startover=TRUE}
+gtex_median %>%
+  mutate(RiboOrMito = str_detect(Description, "RPL|RPS|MT-")) %>%
+  count(RiboOrMito)
+```
+
+About two percent of the genes are ribosomal or mitochondrial, but what about a top 50 list?  Let's try `AdiposeSubcutaneous`.  
+
+```{r chunk03, exercise=TRUE, exercise.startover=TRUE}
+gtex_median %>%
+  top_n(50, AdiposeSubcutaneous) %>%
+  mutate(RiboOrMito = str_detect(Description, "RPL|RPS|MT-")) %>%
+  count(RiboOrMito)
+```
+
+Sixty percent of the genes fall into this group in the top 50 list.  Clearly, these genes are over-represent and should be eliminated to allow for more interesting, and hopefully tissue-specific, genes.  
+
+```{r chunk04, exercise=TRUE, exercise.startover=TRUE}
+gtex_median <- gtex_median %>%
+  filter(!str_detect(Description, "RPL|RPS|MT-"))
+nrow(gtex_median)
+```
+
+This filter removes 1101 genes.  
+
+## Get Top 50 Genes by Tissue  
+
+To get the top 50 genes for a specific tissue, we can use the `top_n`, `arrange` and `pull`.  It is not strictly necessary to use `arrange`, but the resulting list of genes is in descending order of Transripts per Million, the unit of gene expression for this data.  
+
+```{r prepare-prep01, include=FALSE}
+gtex_median <- gtex_median %>%
+  filter(!str_detect(Description, "RPL|RPS|MT-"))
+```
+
+
+```{r chunk05, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep01"}
+gtex_median %>%
+  top_n(n=50, wt=AdiposeSubcutaneous) %>%
+  arrange(desc(AdiposeSubcutaneous)) %>%
+  pull(Description)
+```
+
+This can be converted to a function.  Remember the basic structure of a function.  
+
+Here is the generic syntax for a **function**.  
+
+`function_name <- function(arglist){`  
+      `expressions / body`  
+      `return(value)`  
+`}`  
+
+The principal task is to determine the arguments that are required.  In addition, R programmers currently recommend that you do not use the **magrittr** pipe operator, `%>%`, inside a functions.  Instead, use a stepwise process to modify an object to return.  
+
+## Writing a Function that Uses Tibble Column Names  
+
+```{r chunk06, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep01"}
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n=in_n, wt=in_column)
+  top_genes <- arrange(top_genes, desc(in_column))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+Now to test the function.  
+
+```{r prepare-prep02, include=FALSE}
+gtex_median <- gtex_median %>%
+  filter(!str_detect(Description, "RPL|RPS|MT-"))
+
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n=in_n, wt=in_column)
+  top_genes <- arrange(top_genes, desc(in_column))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+```{r chunk07, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02"}
+top50(in_tibble=gtex_median, in_n=50, in_column=AdiposeSubcutaneous)
+```
+
+Our function does not recognize `AdiposeSubcutaneous` as a column like the other **tidyverse** functions.  
+What if we use the column name in quotes?  
+
+```{r chunk08, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02"}
+top50(in_tibble=gtex_median, in_n=50, in_column="AdiposeSubcutaneous")
+```
+
+The error is cryptic, but it certainly caused by the column name.  The issue is related to how **tidyverse** functions handles column names as "naked variables".  We need additional code that allows functions like `top_n`, `arrange` and `pull` to interpret our input columns.  
+
+The solution is to convert our column name to a symbol that can be evaluated.  Why and how this works is beyond the scope of this tutorial (and class).  Simply put, to convert a column name from a **character string** to something that can be used by `top_n` or `arrange`, you must use the following expression to convert it to a symbol:  
+
+`!! sym("column name as character")`  
+
+This is getting to the heart of the R language itself.  It is not necessary to understand exactly what is happening, but useful to know when to use it.  
+
+We can rewrite our function to include this new code.  
+
+```{r chunk09, exercise=TRUE, exercise.startover=TRUE}
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n = in_n, wt = !! sym(in_column))
+  top_genes <- arrange(top_genes, desc(!! sym(in_column)))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+Test it.  
+
+```{r prepare-prep03, include=FALSE}
+gtex_median <- gtex_median %>%
+  filter(!str_detect(Description, "RPL|RPS|MT-"))
+
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n = in_n, wt = !! sym(in_column))
+  top_genes <- arrange(top_genes, desc(!! sym(in_column)))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+```
+
+
+```{r chunk10, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+top50(in_tibble=gtex_median, in_n=50, in_column="AdiposeSubcutaneous")
+```
+
+It works!  But, can we do multiple columns?  
+
+```{r chunk11, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+my_columns <- colnames(gtex_median)[3:4]
+top50(in_tibble=gtex_median, in_n=50, in_column=my_columns)
+```
+
+Not surprisingly, this does not work.  Our function `top50` has no way to handle multiple columns.  
+
+## Use `lapply` to Use a Function on Multiple Values  
+
+Many, but not all, R functions are vectorized.  However, you can often "vectorize" a function by using **lists**, a common R data structure.  Both **data frames** and **tibbles** are special cases of **lists** in that they are **lists** comprised of aligned **vectors** or columns.  The columns can contain different data types, but they must all be of the same length.  There are no such limitations with **lists**.  
+
+Let's create a simple example of a **list**.  
+
+```{r chunk12, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep03"}
+my_list <- list(panel01=1:100, panel02=8:15, panel03=c(1:3, 15))
+my_list
+```
+
+This list has three elements, `panel01`, `panel02` and `panel03`, at positions 1, 2 and 3, respectively.  Each element is a **numeric vector**, but they are of different lengths.  
+
+**Lists** are so common in R that there is a special function, `lapply`, that allows you to "apply" a function to each element (values) in a **list**.  The basic use of `lapply` is this:
+
+`lapply(X = list or list-like object, FUN = function to apply to each element of list, ... = other arguments to FUN)`
+
+This data could certainly be organized as a **tibble** with one column for `panel` and another with `value`.  You could then `group_by` `panel` and use `summarize` to determine the mean for each panel.  
+
+However, we can also use `lapply` to "apply" `mean` to each element in the list.  
+
+```{r prepare-prep04, include=FALSE}
+gtex_median <- gtex_median %>%
+  filter(!str_detect(Description, "RPL|RPS|MT-"))
+
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n = in_n, wt = !! sym(in_column))
+  top_genes <- arrange(top_genes, desc(!! sym(in_column)))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+
+my_list <- list(panel01=1:10, panel02=8:15, panel03=c(1:3, 15))
+```
+
+```{r chunk13, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+lapply(my_list, mean)
+```
+
+Note that the input was a list with a length of three, and the result is a list with a length of three.  
+Given that information, can we use `top50` with `lapply` using the column names as a list?  
+
+```{r chunk14, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_columns <- colnames(gtex_median)[3:4]
+lapply(my_columns, top50, in_tibble=gtex_median, in_n=50)
+```
+
+That worked!  We have a list with two elements, and each element is a vector of gene names.  
+
+Now we can do all the tissues.  We can name the elements of the resulting **list** to help keep track of the tissues.  
+
+```{r chunk15, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_columns <- colnames(gtex_median)[3:55]
+top50_genes <- lapply(my_columns, top50, in_tibble=gtex_median, in_n=50)
+names(top50_genes) <- my_columns
+```
+
+Examine a few of the results  
+
+```{r prepare-prep05, include=FALSE}
+gtex_median <- gtex_median %>%
+  filter(!str_detect(Description, "RPL|RPS|MT-"))
+
+top50 <- function(in_tibble, in_n, in_column){
+  top_genes <- top_n(in_tibble, n = in_n, wt = !! sym(in_column))
+  top_genes <- arrange(top_genes, desc(!! sym(in_column)))
+  top_genes <- pull(top_genes, Description)
+  return(top_genes)
+}
+
+my_columns <- colnames(gtex_median)[3:55]
+top50_genes <- lapply(my_columns, top50, in_tibble=gtex_median, in_n=50)
+names(top50_genes) <- my_columns
+```
+
+```{r chunk16, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep05"}
+head(top50_genes)
+```
+
+The list, `top50_genes` has 53 elements, one for each tissue in the GTEx data.  Each element is a character vector of 50 gene symbols.  
+
+## Making a Heatmap from a Gene List
+
+What can we do with this list?  One thing that we can try is to make our own heatmaps, similar to the visualizations at **GTEx**.  
+
+This section is for demonstration purposes only.  There will be a more detailed tutorial on heatmaps later.  Most of the code in the chunk below is required to convert the data in the **tibble** to a **matrix** that can be used by `pheatmap`.  
+
+To extract the genes symbols from `top50_genes`, you use double brackets, `[[]]`, and the name of the element as a **character pattern**.  
+
+You can also limit the number of tissues by indexing `my_columns` with an integer vector.  
+
+The chunk below will visualize the results for the top 50 genes of whole blood showing only the first 30 tissues.  The data has been transformed to facilitate visualization.  
+
+You can visualize other gene lists by change the value for `my_tissue`.  You can choose different columns (tissues) by changing `column_numbers`.  Remember, there are only 53 tissues.  
+
+```{r chunk17, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep05", fig.width=8, fig.height=8}
+my_tissue <- "WholeBlood"
+column_numbers <- 34:53
+heatmap_columns <- my_columns[34:53]
+heatmap_genes <- top50_genes[[my_tissue]]
+heatmap_data <- filter(gtex_median, Description %in% heatmap_genes) %>%
+  select(Description, heatmap_columns)
+heatmap_mat <- as.matrix(select(heatmap_data, heatmap_columns))
+gene_mean <- apply(heatmap_mat, 1, mean, na.rm=TRUE)
+gene_sd <- apply(heatmap_mat, 1, sd, na.rm=TRUE)
+heatmap_mat <- sweep(heatmap_mat, 1, gene_mean, "-")
+heatmap_mat <- sweep(heatmap_mat, 1, gene_sd, "/")
+rownames(heatmap_mat) <- pull(heatmap_data, Description)
+pheatmap(heatmap_mat, fontsize=8)
+```
+
+You can change the gene list by using a different tissue name.  You can change the tissue to display by changing the integer vector that indexes `my_columns`.  
+
+This is the end of the tutorial.  Make sure that you understand functions and lists.  They are very useful tools for your **R** arsenal!  
+
+```{r}
+sessionInfo()
+```
+
