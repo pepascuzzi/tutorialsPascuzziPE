@@ -10,7 +10,9 @@ There are currently four tutorials:
 + "T04_Tibbles"
 + "T05_IntroToGgplot2"
 + "T06_DataWrangling01"
-+ "T07_FunctionsAndLapply"
++ "T07_WritingFunctions"
++ "T08_UsingLapply"
++ "T09_HierarchicalClustering"
 
 You run a tutorial using the `run_tutorial` function in the **learnr** package.
 
@@ -22,6 +24,9 @@ devtools::install_github("https://github.com/pepascuzzi/tutorialsPascuzziPE.git"
 library(learnr)
 run_tutorial(name="T01_GettingStarted", package="tutorialsPascuzziPE")
 ```
+Alternatively, you can open the Rmd file directly in RStudio by locating the package directory in your R library.  The tutorials are in a subdirectory named tutorials.  You can then Run Document from RStudio.  Be careful with this method because you can accidently change the Rmd file!  
+
+An example tutorial is shown below.  
 
 # T04 Tibbles
 A rendered version of tutorial 4 is shown below as a preview.  It is not interactive!
