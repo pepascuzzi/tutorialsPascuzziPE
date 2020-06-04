@@ -27,13 +27,14 @@ These learnR tutorials are a work in progress.  They were written to support bot
 }
 \usage{
 learnr::run_tutorial("T01_GettingStarted", package="tutorialsPascuzziPE")
+learnr::run_tutorial("T02_DataTypes", package="tutorialsPascuzziPE")
 }
 \arguments{
   \item{x}{
 }
 }
 \details{
-The **learnr** and **tidyverse** packages must be installed.
+The learnr and tidyverse packages must be installed.
 }
 \value{
 not applicable
