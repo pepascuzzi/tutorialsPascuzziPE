@@ -5,7 +5,7 @@
 LearnR Tutorials by P.E. Pascuzzi
 }
 \description{
-These learnR tutorials are a work in progress.  They were written to support both undergraduate and graduate courses for students in the life sciences.  The package can be installed or download from GitHub,  https://github.com/pepascuzzi/tutorialsPascuzziPE.  There are currently four tutorials.
+These learnR tutorials are a work in progress.  They were written to support both undergraduate and graduate courses for students in the life sciences.  The package can be installed or download from GitHub,  https://github.com/pepascuzzi/tutorialsPascuzziPE.  There are currently nine tutorials.
 
     "T01_GettingStarted"
 
@@ -39,6 +39,8 @@ learnr::run_tutorial("T05_IntroToGgplot2", package="tutorialsPascuzziPE")
 learnr::run_tutorial("T06_DataWrangling01", package="tutorialsPascuzziPE")
 
 learnr::run_tutorial("T07_WritingFunctions", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T08_UsingLapply", package="tutorialsPascuzziPE")
 
 learnr::run_tutorial("T09_HierarchicalClustering", package="tutorialsPascuzziPE")
 }
