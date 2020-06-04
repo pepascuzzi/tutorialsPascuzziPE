@@ -16,16 +16,38 @@ These learnR tutorials are a work in progress.  They were written to support bot
     "T04_Tibbles"
 
     "T05_IntroToGgplot2"
+
+    "T06_DataWrangling01"
+
+    "T07_WritingFunctions"
+
+    "T08_UsingLapply"
+
+    "T09_HierarchicalClustering"
 }
 \usage{
-learnr::run_tutorial("tutorial name", package="tutorialsPascuzziPE")
+learnr::run_tutorial("T01_GettingStarted", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T02_DataTypes", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T03_UsingVectors", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T04_Tibbles", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T05_IntroToGgplot2", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T06_DataWrangling01", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T07_WritingFunctions", package="tutorialsPascuzziPE")
+
+learnr::run_tutorial("T09_HierarchicalClustering", package="tutorialsPascuzziPE")
 }
 \arguments{
   \item{x}{
 }
 }
 \details{
-The learnr and tidyverse packages must be installed and loaded.
+The **learnr** and **tidyverse** packages must be installed.
 }
 \value{
 not applicable
