@@ -47,9 +47,6 @@ Pete E. Pascuzzi
 \note{
 None at this time.
 }
-
-
-
 \seealso{
 learnR package
 }
@@ -65,6 +62,5 @@ run_tutorial("T07_WritingFunctions", "tutorialsPascuzziPE")
 run_tutorial("T08_UsingLapply", "tutorialsPascuzziPE")
 run_tutorial("T09_HierarchicalClustering", "tutorialsPascuzziPE")
 }
-
 \keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
 \keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
