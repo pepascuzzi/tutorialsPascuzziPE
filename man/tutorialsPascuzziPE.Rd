@@ -27,7 +27,6 @@ These learnR tutorials are a work in progress.  They were written to support bot
 }
 \usage{
 learnr::run_tutorial("T01_GettingStarted", package="tutorialsPascuzziPE")
-learnr::run_tutorial("T02_DataTypes", package="tutorialsPascuzziPE")
 }
 \arguments{
   \item{x}{
@@ -62,7 +61,9 @@ run_tutorial("T03_UsingVectors", "tutorialsPascuzziPE")
 run_tutorial("T04_Tibbles", "tutorialsPascuzziPE")
 run_tutorial("T05_IntroToGgplot2", "tutorialsPascuzziPE")
 run_tutorial("T06_DataWrangling01", "tutorialsPascuzziPE")
-run_tutorial("T07_FunctionsAndLapply", "tutorialsPascuzziPE")
+run_tutorial("T07_WritingFunctions", "tutorialsPascuzziPE")
+run_tutorial("T08_UsingLapply", "tutorialsPascuzziPE")
+run_tutorial("T09_HierarchicalClustering", "tutorialsPascuzziPE")
 }
 
 \keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
