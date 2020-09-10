@@ -32,7 +32,7 @@ knitr::opts_chunk$set(fig.height=8)
 
 The tutorial, `Tutorial07_WritingFunctions`, showed you how to write a simple function to use with `rename_all` to replace the special characters in the column names of the GTEx data set.  
 
-This tutorial builds on the functions to show you how to write a function that will extract the top 50 highest expressing genes for all 53 tissues in the GTEx data.  
+This tutorial builds on that concept to show you how to write a function that will extract the top 50 highest expressing genes for all 53 tissues in the GTEx data.  To do this efficiently, you will learn how to use R **lists** and the `lapply` function.  
 
 ## Learning Objectives  
 + Use `filter` and `str_detect` to remove unwanted observations for a dataset.  
