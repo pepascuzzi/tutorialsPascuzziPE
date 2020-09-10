@@ -97,9 +97,31 @@ When you started this tutorial, a **tibble** was created from the chunk below.  
 ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", col_names=TRUE)
 ```
 
-The argument `delim="\t"` indicates that the file has **tab-delimited** columns.  The text pattern `"\t"` is how tabs are encoded in a plain text file.  These special characters are usually hidden by text editors and word processors.  
+The **argument** `delim="\t"` indicates that the file has **tab-delimited** columns.  The text pattern `"\t"` is how tabs are encoded in a plain text file.  These special characters are usually hidden by text editors and word processors.  Other common **delimiters** are commas (csv files) or spaces.  
 
-Note that the function `read_delim` was used and **NOT** `read.delim`.  The first is a **tidyverse R function** that will create a **tibble**.  The latter is an **old school R** function that will create a **data frame**.  In general, do not use `read.delim` in this class!  
+The **argument** `col_names=TRUE` indicates that the first row should be used as column names.  This can also be set to `FALSE` if the first row of your file contains data.  Alternatively, you can provide a **character vector** of column names.  
+
+The **argument** `col_types="cffffn"` indicates the **data type** for each column using a simple **character string** as follows:  
+
+|Data Type  |Character|
+|:--------------------|:-----|
+| **character** | "c" |
+| **numeric** | "n" |
+| **integer** | "i" |
+| **factor** | "f" |
+| **logical** | "l" |
+| guess | "?" |
+| skip | "-" |
+| **date** | "D"|
+| **date time** | "T"|
+| **time** | "t" |
+
+The **argument** `na=c("", "-", "NA", "missing", "Inf", "-Inf")` indicates which values should be converted to `NA`.  This argument is very important if you read large files with numeric values where some values are missing.  Several common examples have been included here, but there are many possibilities.  
+
+You may need to adjust these options until the data is imported as you want.  In addition, there are several other arguments that you might need.  See the help page for `read_delim`.  
+
+Note that the function `read_delim` was used and **NOT** `read.delim`.  The first is a **tidyverse R function** that will create a **tibble**.  The latter is an **old school R** function that will create a **data frame**.  In general, do not use `read.delim` in this class because it makes certain assumptions about your data that might not be true!  
+
 The **class** of a **tibble** is confusing.  It essentially has three classes.  Importantly, it behaves much like the **data frame**.  
 
 ```{r q65, exercise=TRUE, exercise.startover=TRUE}
