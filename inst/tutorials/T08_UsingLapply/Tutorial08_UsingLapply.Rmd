@@ -13,7 +13,7 @@ library(tidyverse)
 library(magrittr)
 library(pheatmap)
 ##########################
-gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", skip=2, delim="\t", col_types="ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", na=c("", "NA", "na"))
+load("gtex_median.rda")
 ##########################
 colname_fixer <- function(in_string, in_pattern, in_replace){
   out_string <- str_to_title(in_string)
