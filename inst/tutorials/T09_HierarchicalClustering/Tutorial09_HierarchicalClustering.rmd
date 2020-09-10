@@ -599,8 +599,6 @@ iris_zscores %>%
   geom_boxplot()
 ```
 
-The variables are now on a similar scale.  
-
 After the steps above (ie, data visualizations and data preprocessing) we are ready to perform hierarchical clustering as we did with the smaller data set.  
 
 This time, we will use the plant species in the label.  

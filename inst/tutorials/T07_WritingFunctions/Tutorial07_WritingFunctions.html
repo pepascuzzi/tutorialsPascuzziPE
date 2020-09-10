@@ -75,11 +75,13 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <p>The data was imported as a <strong>tibble</strong> when the tutorial was lauched. Note that this file has both <code>gct</code> and <code>gz</code> extensions. A <code>gct</code> file is a tab-delimited plain text file that contains results from a gene expression experiment. The <code>gz</code> extension indicates that the file was compressed by <strong>gzip</strong> software to save disk space. Even compressed, this is a large file (nearly 5 MB). Fortunately, R can import the file without “unzipping” it.</p>
 <p>To read a large file quickly, it is important to use the <code>col_types</code> argument that indicates the <strong>data type</strong> for each column. Additionally, the <strong>character patterns</strong> that should be imported as <code>NA</code> should be specified to speed the import. Refer to <strong>Tutorial 4</strong> for more information.</p>
 <p>The argument <code>skip=2</code> was required because the first two lines of the file contain information for specific software (an no consistent comment character was used).</p>
-<p>The code used to import the data is shown below. This chunk cannot be run.</p>
-<pre class="r"><code>gtex_median &lt;- read_delim(&quot;GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz&quot;, 
+<p>The code used to originally import the data into R is shown below. This chunk cannot be run.</p>
+<pre class="r"><code>my_coltypes &lt;- c(rep(&quot;c&quot;, 2), rep(&quot;n&quot;, 53)) %&gt;%
+  str_c(collapse=&quot;&quot;)
+gtex_median &lt;- read_delim(&quot;GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz&quot;, 
                           skip=2,
                           delim=&quot;\t&quot;,
-                          col_types=&quot;ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn&quot;, 
+                          col_types=my_coltypes, 
                           na=c(&quot;&quot;, &quot;NA&quot;, &quot;na&quot;))</code></pre>
 <p>Use <code>slice</code> to display the first ten rows of the <strong>tibble</strong> to perform a visual check. Note, if you try to display too many rows, the tutorial may crash!</p>
 <div class="tutorial-exercise" data-label="chunk01a" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
@@ -87,7 +89,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
   slice(1:10)</code></pre>
 <script type="application/json" data-opts-chunk="1">{"fig.width":8,"fig.height":8,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":768,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
 </div>
-<p>For a large file, it can be important to examine the last rows of the data (use a negative integers with <code>slice</code>). If the file is sorted in any way, unusual values may occur in these rows.</p>
+<p>For a large file, it can be important to examine the last rows of the data (use a negative integers with <code>slice</code>). If the file is sorted in any way, unusual values may occur in these last rows.</p>
 <div class="tutorial-exercise" data-label="chunk01b" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code>gtex_median %&gt;%
   slice(-1:-10)</code></pre>
@@ -492,14 +494,14 @@ good_name</code></pre>
 }</code></pre>
 <p>What <strong>arguments</strong> would you need to include in the function definition so that it could read 3- or 6-column <strong>BED</strong> files?</p>
 
-<div id="htmlwidget-a79f0315ef45ddfb28ed" style="width:100%;height:auto;", class = "quiz html-widget">
+<div id="htmlwidget-d07af34b68a1622b5acf" style="width:100%;height:auto;", class = "quiz html-widget">
 <div class="panel panel-default">
 <div class="panel-body quizArea">
 </div>
 </div>
 </div>
 
-<script type="application/json" data-for="htmlwidget-a79f0315ef45ddfb28ed">{"x":{"question":"","answers":[{"option":"file","correct":true,"message":null},{"option":"col_names","correct":true,"message":null},{"option":"delim","correct":false,"message":null},{"option":"col_types","correct":true,"message":null}],"label":"quiz2","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"file","correct":true,"message":null},{"option":"col_names","correct":true,"message":null},{"option":"delim","correct":false,"message":null},{"option":"col_types","correct":true,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-d07af34b68a1622b5acf">{"x":{"question":"","answers":[{"option":"file","correct":true,"message":null},{"option":"col_names","correct":true,"message":null},{"option":"delim","correct":false,"message":null},{"option":"col_types","correct":true,"message":null}],"label":"quiz2","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"file","correct":true,"message":null},{"option":"col_names","correct":true,"message":null},{"option":"delim","correct":false,"message":null},{"option":"col_types","correct":true,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="section-question-3" class="section level3">
 <h3>Question 3</h3>
@@ -508,14 +510,14 @@ good_name</code></pre>
   my_result &lt;- str_c(x, y, sep=&quot;_&quot;)
 }</code></pre>
 
-<div id="htmlwidget-eae8785e4220f0e214f5" style="width:100%;height:auto;", class = "quiz html-widget">
+<div id="htmlwidget-e5f8a2767d8be18b97eb" style="width:100%;height:auto;", class = "quiz html-widget">
 <div class="panel panel-default">
 <div class="panel-body quizArea">
 </div>
 </div>
 </div>
 
-<script type="application/json" data-for="htmlwidget-eae8785e4220f0e214f5">{"x":{"question":"","answers":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The argument sep is not an argument that can be changed.","correct":false,"message":null},{"option":"The arguments x and y have no default values.","correct":false,"message":null},{"option":"No value is returned","correct":true,"message":null}],"label":"quiz3","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The argument sep is not an argument that can be changed.","correct":false,"message":null},{"option":"The arguments x and y have no default values.","correct":false,"message":null},{"option":"No value is returned","correct":true,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-e5f8a2767d8be18b97eb">{"x":{"question":"","answers":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The argument sep is not an argument that can be changed.","correct":false,"message":null},{"option":"The arguments x and y have no default values.","correct":false,"message":null},{"option":"No value is returned","correct":true,"message":null}],"label":"quiz3","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The argument sep is not an argument that can be changed.","correct":false,"message":null},{"option":"The arguments x and y have no default values.","correct":false,"message":null},{"option":"No value is returned","correct":true,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="section-question-4" class="section level3">
 <h3>Question 4</h3>
@@ -526,31 +528,31 @@ good_name</code></pre>
   return(my_result)
 }</code></pre>
 
-<div id="htmlwidget-7a4e9344959a10d671d7" style="width:100%;height:auto;", class = "quiz html-widget">
+<div id="htmlwidget-d05e19ce06f77153f7cd" style="width:100%;height:auto;", class = "quiz html-widget">
 <div class="panel panel-default">
 <div class="panel-body quizArea">
 </div>
 </div>
 </div>
 
-<script type="application/json" data-for="htmlwidget-7a4e9344959a10d671d7">{"x":{"question":"","answers":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The result would be too big.","correct":false,"message":null},{"option":"The arguments x, y and z have no default values.","correct":false,"message":null},{"option":"The argument z was never used","correct":true,"message":null}],"label":"quiz4","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The result would be too big.","correct":false,"message":null},{"option":"The arguments x, y and z have no default values.","correct":false,"message":null},{"option":"The argument z was never used","correct":true,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-d05e19ce06f77153f7cd">{"x":{"question":"","answers":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The result would be too big.","correct":false,"message":null},{"option":"The arguments x, y and z have no default values.","correct":false,"message":null},{"option":"The argument z was never used","correct":true,"message":null}],"label":"quiz4","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"The function serves no purpose.","correct":false,"message":null},{"option":"The result would be too big.","correct":false,"message":null},{"option":"The arguments x, y and z have no default values.","correct":false,"message":null},{"option":"The argument z was never used","correct":true,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="section-question-5" class="section level3">
 <h3>Question 5</h3>
 <p>To reuse a function, you save it as a plain R script in your current directory, e.g. <code>myFunction.R</code>. To use the function, you should do which of the following?</p>
 
-<div id="htmlwidget-ce7d9c8610c3c0fabcde" style="width:100%;height:auto;", class = "quiz html-widget">
+<div id="htmlwidget-b9b550c94840eb26a955" style="width:100%;height:auto;", class = "quiz html-widget">
 <div class="panel panel-default">
 <div class="panel-body quizArea">
 </div>
 </div>
 </div>
 
-<script type="application/json" data-for="htmlwidget-ce7d9c8610c3c0fabcde">{"x":{"question":"","answers":[{"option":"Use read_delim.","correct":false,"message":null},{"option":"Use load.","correct":false,"message":null},{"option":"Use source.","correct":true,"message":null},{"option":"Open the file in the editor and copy and past the function code into your source file.","correct":false,"message":null}],"label":"quiz5","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"Use read_delim.","correct":false,"message":null},{"option":"Use load.","correct":false,"message":null},{"option":"Use source.","correct":true,"message":null},{"option":"Open the file in the editor and copy and past the function code into your source file.","correct":false,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-b9b550c94840eb26a955">{"x":{"question":"","answers":[{"option":"Use read_delim.","correct":false,"message":null},{"option":"Use load.","correct":false,"message":null},{"option":"Use source.","correct":true,"message":null},{"option":"Open the file in the editor and copy and past the function code into your source file.","correct":false,"message":null}],"label":"quiz5","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"","a":[{"option":"Use read_delim.","correct":false,"message":null},{"option":"Use load.","correct":false,"message":null},{"option":"Use source.","correct":true,"message":null},{"option":"Open the file in the editor and copy and past the function code into your source file.","correct":false,"message":null}],"correct":"Correct!","incorrect":"Incorrect.","force_checkbox":true}]}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 3.6.1 (2019-07-05)
 ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-## Running under: macOS Mojave 10.14.4
+## Running under: macOS Mojave 10.14.6
 ## 
 ## Matrix products: default
 ## BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
@@ -594,7 +596,7 @@ library(learnr)
 library(tidyverse)
 library(magrittr)
 library(pheatmap)
-gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", skip=2, delim="\t", col_types="ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", na=c("", "NA", "na"))
+load("gtex_median.rda")
 knitr::opts_chunk$set(fig.width=8)
 knitr::opts_chunk$set(fig.height=8)
 </script>

@@ -154,7 +154,7 @@ ar_exp
 ## # … with 9,111 more rows
 ```
 
-This data was downloaded from [cBioPortal](http://www.cbioportal.org/){target="_blank"} and contains data for about 9100 samples from multiple cancer studies.
+This data was downloaded from [cBioPortal](http://www.cbioportal.org/) and contains data for about 9100 samples from multiple cancer studies.
 
 You can use `summary` to get a quick summary of each column or variable in a **tibble**.  Remember the issue with rounding of numbers from the **vectors** lesson!
 

@@ -12,7 +12,7 @@ library(learnr)
 library(tidyverse)
 library(magrittr)
 library(pheatmap)
-gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", skip=2, delim="\t", col_types="ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", na=c("", "NA", "na"))
+load("gtex_median.rda")
 knitr::opts_chunk$set(fig.width=8)
 knitr::opts_chunk$set(fig.height=8)
 ```
@@ -49,13 +49,15 @@ To read a large file quickly, it is important to use the `col_types` argument th
 
 The argument `skip=2` was required because the first two lines of the file contain information for specific software (an no consistent comment character was used).  
 
-The code used to import the data is shown below.  This chunk cannot be run.  
+The code used to originally import the data into R is shown below.  This chunk cannot be run.  
 
 ```{r eval=FALSE, echo=TRUE}
+my_coltypes <- c(rep("c", 2), rep("n", 53)) %>%
+  str_c(collapse="")
 gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median_tpm.gct.gz", 
                           skip=2,
                           delim="\t",
-                          col_types="ccnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", 
+                          col_types=my_coltypes, 
                           na=c("", "NA", "na"))
 ```
 
@@ -66,7 +68,7 @@ gtex_median %>%
   slice(1:10)
 ```
 
-For a large file, it can be important to examine the last rows of the data (use a negative integers with `slice`).  If the file is sorted in any way, unusual values may occur in these rows.  
+For a large file, it can be important to examine the last rows of the data (use a negative integers with `slice`).  If the file is sorted in any way, unusual values may occur in these last rows.  
 
 ```{r chunk01b, exercise=TRUE, exercise.startover=TRUE}
 gtex_median %>%
