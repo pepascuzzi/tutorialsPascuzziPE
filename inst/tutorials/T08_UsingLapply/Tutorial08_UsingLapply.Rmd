@@ -234,16 +234,6 @@ my_list <- list(panel01=1:100, panel02=8:15, panel03=c(1:3, 15))
 my_list
 ```
 
-This list has three elements, `panel01`, `panel02` and `panel03`, at positions 1, 2 and 3, respectively.  Each element is a **numeric vector**, but they are of different lengths.  
-
-**Lists** are so common in R that there is a special function, `lapply`, that allows you to "apply" a function to each element (values) in a **list**.  The basic use of `lapply` is this:
-
-`lapply(X = list or list-like object, FUN = function to apply to each element of list, ... = other arguments to FUN)`
-
-This data could certainly be organized as a **tibble** with one column for `panel` and another with `value`.  You could then `group_by` `panel` and use `summarize` to determine the mean for each panel.  
-
-However, we can also use `lapply` to "apply" `mean` to each element in the list.  
-
 ```{r prepare-prep04, include=FALSE}
 gtex_median <- gtex_median %>%
   filter(!str_detect(Description, "RPL|RPS|MT-"))
@@ -256,18 +246,105 @@ top50 <- function(in_tibble, in_n, in_column){
 }
 
 my_list <- list(panel01=1:10, panel02=8:15, panel03=c(1:3, 15))
+new_list <- list(A=print, B=filter(mtcars, cyl==6), C=t.test(x=1:10, y=21:30))
 ```
 
+This list has three elements, `panel01`, `panel02` and `panel03`, at positions 1, 2 and 3, respectively.  Each element is a **numeric vector**, but they are of different lengths.  
+
+As with **data frames** and **tibbles**, there are ways to extract data from a **lists**.  However, **dplyr** functions like `select` or `pull` will not work with **lists**, but you can use base R extraction operators such as `[]`, `[[]]` or `$`.   
+With single square brackets, `[]`, you can subset a **list** to get only the desired elements as a smaller **list**.  This is similar to `select` with a **tibble**.  
+
+You can use integers or names to subset (or rearrange) the list.  
+
+```{r chunk12a, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_list[c(1, 3)]
+```
+
+Rearrange with element names.  
+
+```{r chunk12b, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_list[c("panel02", "panel01")]
+```
+
+Important, with single brackets the result is always still a **list**!  
+
+To extract the actual data in a single **list** element, you must use double square brackets, `[[]]` or the dollar sign, `$`.  In either case, you extract the entire object.  In our example, each element is an **integer vector**.  
+
+```{r chunk12c, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_list[["panel01"]]
+```
+
+Similar to single brackets, you can also use an integer index.  
+
+```{r chunk12d, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_list[[2]]
+```
+
+The dollar sign works similarly.
+
+```{r chunk12e, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_list$panel03
+```
+
+Important, with double brackets or the dollar sign, you can only extract a single list element!  
+
+Depending on the class of the data object that comprises the list element, you can then perform more manipulations of the data.  
+
+```{r chunk12f, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_list[[1]] %>%
+  mean(na.rm=TRUE)
+```
+
+You can extract specific values.  
+
+```{r chunk12g, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+my_list[[1]][1:3]
+```
+
+**Lists** are very flexible, and the elements of a list can be nearly any type of R object.  
+
+```{r chunk12h, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+new_list <- list(A=print, 
+                 B=filter(mtcars, cyl==6),
+                 C=t.test(x=1:10, y=21:30))
+new_list
+```
+
+The example above is quite artificial, but it illustrates the point that **lists** are flexible.  
+
+**Lists** are so common in R that there is a special function, `lapply`, that allows you to "apply" a function to each element in a **list**.  The basic use of `lapply` is this:
+
+`lapply(X = list or list-like object, FUN = function to apply to each element of list, ... = other arguments to FUN)`
+
+The data in `my_list` could certainly be organized as a **tibble** with one column for `panel` and another with `value`.  You could then `group_by` `panel` and use `summarize` to determine the mean for each panel.  
+
+However, we can also use `lapply` to "apply" `mean` to each element in the list.  
+
 ```{r chunk13, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
-lapply(my_list, mean)
+lapply(my_list, mean, na.rm=TRUE)
 ```
 
 Note that the input was a list with a length of three, and the result is a list with a length of three.  
-Given that information, can we use `top50` with `lapply` using the column names as a list?  
+
+With `new_list`, it is nearly impossible to apply the same function to each element.  However, we can determine the class for each element.  
+
+```{r chunk13a, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+lapply(new_list, class)
+```
+
+One final note, with `lapply`, `X` does not always need to be a **list**.  It can be an object that can be interpreted by R as a list, e.g. vectors are often used with `lapply`.  
+
+Importantly, with `lapply`, `X` is always used as the value for the first **argument** of the function that you use for `FUN`.  
+
+```{r chunk13b, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
+lapply(c("blue", "red", "green"), nchar)
+```
+
+Given the information above, can we use `top50` with `lapply` using the column names as the `list`, `X`?  Remember, we can pass other arguments to `top50` such as `in_tibble` and `in_n`.  
 
 ```{r chunk14, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep04"}
 my_columns <- colnames(gtex_median)[3:4]
-lapply(my_columns, top50, in_tibble=gtex_median, in_n=50)
+lapply(X=my_columns, FUN=top50, in_tibble=gtex_median, in_n=50)
 ```
 
 That worked!  We have a list with two elements, and each element is a vector of gene names.  
