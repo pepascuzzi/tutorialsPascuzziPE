@@ -119,15 +119,15 @@ $(document).ready(function () {
 <div id="section-introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Hierarchical clustering is a method of unsupervisied learning that can discover patterns in a data set. These patterns can be used to group similar observations for further analyses.</p>
-<p>Recall the <code>iris</code> data set which was introduced in previous tutorial.</p>
+<p>The <code>iris</code> data set in the <strong>datasets</strong> package, contains four variables for flower organs for three iris species. Let’s see if we can use hierarchical clustering to group the observations by species using only these variables.</p>
 <div class="tutorial-exercise" data-label="q01" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code>iris &lt;- as_tibble(iris) %&gt;%
   mutate(plant_id = str_c(&quot;plant&quot;, 1:150, sep=&quot;_&quot;))
 iris</code></pre>
 <script type="application/json" data-opts-chunk="1">{"fig.width":6,"fig.height":6,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":576,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
 </div>
-<p>This data set contains information for 3 types of iris plant: <strong>Setosa</strong>, <strong>Versicolor</strong>, <strong>Virginica</strong>. We hope that we can use the hierarchical clustering algorithm to group the similar iris plants, i.e. plants that belong to same species.</p>
-<p>In this tutorial, you will learn how hierarchical clustering works by studying it’s cruical components and how to apply it to real data set like <code>iris</code>. So let’s get into it!</p>
+<p>There are 50 observations each for the iris species *Setosa<strong>, </strong>Versicolor<strong>, </strong>Virginica**.</p>
+<p>In this tutorial, you will learn how hierarchical clustering works by studying the steps to an actual data set like <code>iris</code>.</p>
 </div>
 <div id="section-learning-objectives" class="section level2">
 <h2>Learning Objectives</h2>
