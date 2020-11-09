@@ -37,7 +37,7 @@ ex_data2 <- tibble(height = c(6, 8, 6),
 
 Hierarchical clustering is a method of unsupervisied learning that can discover patterns in a data set. These patterns can be used to group similar observations for further analyses.
 
-Recall the `iris` data set which was introduced in previous tutorial.
+The `iris` data set in the **datasets** package, contains four variables for flower organs for three iris species.  Let's see if we can use hierarchical clustering to group the observations by species using only these variables.  
 
 ```{r q01, exercise=TRUE, exercise.startover=TRUE}
 iris <- as_tibble(iris) %>%
@@ -45,9 +45,9 @@ iris <- as_tibble(iris) %>%
 iris
 ```
 
-This data set contains information for 3 types of iris plant: **Setosa**, **Versicolor**, **Virginica**. We hope that we can use the hierarchical clustering algorithm to group the similar iris plants, i.e. plants that belong to same species.
+There are 50 observations each for the iris species *Setosa**, **Versicolor**, **Virginica**.  
 
-In this tutorial, you will learn how hierarchical clustering works by studying it's cruical components and how to apply it to real data set like `iris`. So let's get into it!
+In this tutorial, you will learn how hierarchical clustering works by studying the steps to an actual data set like `iris`. 
 
 ## Learning Objectives
 
