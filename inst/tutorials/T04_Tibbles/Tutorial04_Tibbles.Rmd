@@ -12,10 +12,12 @@ library(tidyverse)
 library(magrittr)
 library(learnr)
 library(RColorBrewer)
-ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", 
-                     col_names=TRUE, col_types="cffffn", 
-                     na=c("", "-", "NA", "missing", "Inf", "-Inf"))
-ar_exp %<>% mutate(Value = round(log(Value + 0.1, base=2), digits=4))
+# ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", 
+#                      col_names=TRUE, col_types="cffffn", 
+#                      na=c("", "-", "NA", "missing", "Inf", "-Inf"))
+# ar_exp %<>% mutate(Value = round(log(Value + 0.1, base=2), digits=4))
+
+load("ar_exp.rda")
 
 vectorPlot <- function(){
     plot(c(0, 1), c(0, 1), type="n", yaxt="n", xaxt="n", ylab="", xlab="", 

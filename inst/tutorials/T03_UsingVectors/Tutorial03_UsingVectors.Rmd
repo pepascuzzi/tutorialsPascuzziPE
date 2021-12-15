@@ -14,6 +14,7 @@ ar_tissue <- scan("ar_tissue.txt", what="character", sep="\t")
 ar_tissue <- as.factor(ar_tissue)
 library(learnr)
 library(RColorBrewer)
+library(stringr)
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = FALSE)
 knitr::opts_chunk$set(fig.width=8)
@@ -265,7 +266,7 @@ At this point, this is plot is very similar to the previous plot.  The big diffe
 We can use the **character strings** in `ar_study` as `labels`, but they need to be shorter.  We can use `substr` to create labels from the first 15 characters in each string.  In addition, we will add a `main` title to the plot.  
 
 ```{r q49, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8}
-ar_labels <- substr(ar_study, start=1, stop=15)
+ar_labels <- str_sub(ar_study, start=1, end=15)
 dotchart(x=ar_value, labels=ar_labels, main="AR Gene Expression", cex=0.8)
 ```
 
@@ -315,7 +316,7 @@ The values for `ar_tissue` are not flanked by quotes.  In addition, the **levels
 Now that we understand `ar_tissue`, we can use it as a grouping variable in our **dotchart**. 
 
 ```{r q55, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8}
-ar_labels <- substr(ar_study, start=1, stop=15)
+ar_labels <- str_sub(ar_study, start=1, end=15)
 dotchart(x=ar_value, labels=ar_labels, groups=ar_tissue, main="AR Gene Expression", 
          cex=0.8, xlab="RNAseq RSEM Value (log2)")
 
@@ -383,7 +384,7 @@ It may seem odd that we can simply recreate `ar_tissue` using `ar_tissue`, but *
 Now, we can repeat the `dotchart`.  
 
 ```{r q55f-setup, include=FALSE}
-ar_labels <- substr(ar_study, start=1, stop=15)
+ar_labels <- str_sub(ar_study, start=1, end=15)
 tissue_mean <- tapply(X=ar_value, INDEX=ar_tissue, FUN=mean, na.rm=TRUE)
 tissue_mean <- sort(tissue_mean, decreasing=TRUE)
 tissue_levels <- names(tissue_mean)

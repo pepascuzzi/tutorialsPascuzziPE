@@ -12,28 +12,30 @@ library(tidyverse)
 library(magrittr)
 library(learnr)
 library(RColorBrewer)
+library(ggsci)
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = FALSE)
 knitr::opts_chunk$set(fig.width=8)
 knitr::opts_chunk$set(fig.height=8)
-ar_study <- scan("ar_study.txt", what="character", sep="\t")
-ar_tissue <- scan("ar_tissue.txt", what="character", sep="\t")
-ar_tb <- tibble(Study=ar_study, Tissue=str_to_title(ar_tissue))
-abbr <- read_delim("TCGA_CancerType_Abbreviations.txt", delim="\t", col_names=FALSE, trim_ws=TRUE)
-colnames(abbr) <- c("Abbr", "Study")
-abbr %<>% mutate(Study=str_to_title(Study))
-ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", 
-                     col_names=TRUE, col_types="cffffn", 
-                     na=c("", "-", "NA", "missing", "Inf", "-Inf"))
-ar_exp %<>% mutate(Value = round(log(Value + 0.1, base=2), digits=4))
-ar_exp <- rename(ar_exp, 
-                 Sample=`Sample Id`, 
-                 Study=`Cancer Study`, 
-                 Profile=`Profile Name`)
-ar_exp <- left_join(ar_exp, ar_tb)
-ar_exp %<>% mutate(Study=str_replace(Study, " \\(TCGA, Provisional\\)", ""))
-ar_exp %<>% mutate(Study=str_to_title(Study))
-ar_exp <- left_join(ar_exp, abbr)
+# ar_study <- scan("ar_study.txt", what="character", sep="\t")
+# ar_tissue <- scan("ar_tissue.txt", what="character", sep="\t")
+# ar_tb <- tibble(Study=ar_study, Tissue=str_to_title(ar_tissue))
+# abbr <- read_delim("TCGA_CancerType_Abbreviations.txt", delim="\t", col_names=FALSE, trim_ws=TRUE)
+# colnames(abbr) <- c("Abbr", "Study")
+# abbr %<>% mutate(Study=str_to_title(Study))
+# ar_exp <- read_delim(file="AR_Expression_cBioPortal.txt", delim="\t", 
+#                      col_names=TRUE, col_types="cffffn", 
+#                      na=c("", "-", "NA", "missing", "Inf", "-Inf"))
+# ar_exp %<>% mutate(Value = round(log(Value + 0.1, base=2), digits=4))
+# ar_exp <- rename(ar_exp, 
+#                  Sample=`Sample Id`, 
+#                  Study=`Cancer Study`, 
+#                  Profile=`Profile Name`)
+# ar_exp <- left_join(ar_exp, ar_tb)
+# ar_exp %<>% mutate(Study=str_replace(Study, " \\(TCGA, Provisional\\)", ""))
+# ar_exp %<>% mutate(Study=str_to_title(Study))
+# ar_exp <- left_join(ar_exp, abbr)
+load("ar_exp.rda")
 ```
 
 ## Introduction to R Graphics
@@ -267,7 +269,30 @@ ar_exp %>%
 
 Change the values for `c` and `l` to see how it affects the colors.  
 
-There are many other ways to manipulate the plotting colors not covered in this tutorial.  
+The big problem is that this color palette is not suitable for discrete data (factors or categorical variables).  Color choice in data visualizations is often a problem.  There are several R packages that can help with this including **RColorBrewer**, **viridis** and **ggsci**.  
+
+Unfortunately, most color palettes for categorical variables have fewer than 10 colors available, i.e. there are not enough colors for our tissues.  However, in **ggsci**, there is a color palette named **d3** that has an option for a palette with 20 values.  
+
+```{r q11b, exercise=TRUE, exercise.startover=TRUE}
+abbr_order <- ar_exp %>%
+  count(Abbr) %>%
+  arrange(n) %>%
+  pull(Abbr)
+
+ar_exp %>%
+  ggplot() +
+  aes(x=Abbr, fill=Tissue) +
+  geom_bar() +
+  coord_flip() +
+  scale_x_discrete(limits=abbr_order) +
+  ggtitle("Sample Counts for TCGA Studies") +
+  theme(plot.title=element_text(hjust=0.5)) +
+  xlab("TCGA Study") +
+  ylab("Sample Count") +
+  scale_fill_d3(palette="category20")
+```
+
+**Ggplot2** has several ways to tweak the color palettes that are used for the `color` or `fill` aesthetic.  Browse the **Ggplot2** package index for `scale_color` or `scale_fill` functions.    
 
 ## Visualize Summary Data with `geom_col`  
 
@@ -480,7 +505,7 @@ ar_exp %>%
   geom_boxplot() +
   scale_x_discrete(limits=abbr_order) +
   coord_flip() +
-  scale_fill_discrete(c=80, l=60)
+  scale_fill_d3("category20")
 ```
 
 This is a very presentable **boxplot**.  If you go to **cBioPortal**, you will see similar **boxplots** for expression of a gene across multiple studies.  However, they go several steps further and overplot all points on the boxplots.  
@@ -502,7 +527,7 @@ ar_exp %>%
   geom_boxplot() +
   scale_x_discrete(limits=abbr_order) +
   coord_flip() +
-  scale_fill_discrete(c=80, l=60) +
+  scale_fill_d3("category20") +
   geom_point()
 ```
 
@@ -525,7 +550,7 @@ ar_exp %>%
   geom_boxplot(outlier.shape=NA) +
   scale_x_discrete(limits=abbr_order) +
   coord_flip() +
-  scale_fill_discrete(c=80, l=60) +
+  scale_fill_d3("category20") +
   geom_jitter(width=0.1, height=0, pch=21)
 ```
 
@@ -562,7 +587,7 @@ ar_exp %>%
   geom_boxplot(outlier.shape=NA) +
   scale_x_discrete(limits=abbr_order) +
   coord_flip() +
-  scale_fill_discrete(c=80, l=60) +
+  scale_fill_d3("category20") +
   geom_jitter(width=0.25, pch=21)
 ```
 
@@ -579,7 +604,7 @@ ar_exp %>%
   geom_boxplot(outlier.shape=NA) +
   scale_x_discrete(limits=abbr_order) +
   coord_flip() +
-  scale_fill_discrete(c=80, l=60) +
+  scale_fill_d3("category20") +
   geom_jitter(width=0.1, pch=21)
 ```
 

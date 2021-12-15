@@ -15,7 +15,7 @@ knitr::opts_chunk$set(cache = FALSE)
 
 ## Introduction
 
-To work with any kind of data with **R**, it needs to be stored in your **working environment** (memory) as an **object**.  There are many types of **objects** in **R** ranging from simple **integer vectors** to complex **ExpressionSets** that store and describe complex biological data.  Regardless of complexity, **objects** are usually built upon simpler **objects**.  
+To work with any kind of data with **R**, it needs to be stored in your **working environment** (memory) as an **object**.  There are many types of **objects** in **R** ranging from simple **integer vectors** to complex **ExpressionSets** that store and describe complex biological data.  Regardless of complexity, **objects** are usually built from simpler **objects**.    
 
 The simplest **class** of **R object** is the **vector** which has four common **types**: **integer**, **numeric**, **character** and **logical**.  The type of underlying data determines the **type** of the **vector**.  **Vectors** can store as few as one value and up to millions of values (the limit is determined by you computer).  
 
@@ -68,7 +68,7 @@ They are not.  Remember, the values in two **objects** may be the same, but the 
 
 ## Numeric Type
 
-If your numbers have decimel points, then you need to store them as **numeric vectors**.  This class is sometimes referred to as **double**.  This is computer science terminology that you do not need to worry about.  What you do need to know is that decimal numbers can create unpredictable results if you do not use them carefully.  More on this later.  
+If your numbers have decimal points, then you need to store them as **numeric vectors**.  This class is sometimes referred to as **double** or **float**.  This is computer science terminology that you do not need to worry about.  What you do need to know is that decimal numbers can create unpredictable results if you do not use them carefully.  More on this later.  
 
 ```{r ex5, exercise=TRUE, exercise.startover=TRUE}
 my_numeric <- 5.5
@@ -147,7 +147,7 @@ nchar(nine_string)
 
 There are many ways to make **vectors** in **R**.  We will work with more of them later.
 
-The second common source of confusion with **character vectors** arises because some **R functions** will convert **characters** to **factors**.  A **factor** is a different data type that can look like a **character** but will have very different behavior.  **Factors** are very important, but they will be covered in a later tutorial.  
+The second common source of confusion with **character vectors** arises because some **R functions** will convert **characters** to **factors**.  A **factor** is a different R data type that looks like a **character** but can have very different behavior.  **Factors** are very important, but they will be covered in a later tutorial.  
 
 ## Logical Types
 
@@ -239,6 +239,8 @@ Here is a table of some useful logical operators.
 |and                |`&`|
 |or                 |`|`|
 |not                |`!`|
+|matching           |`%in%`|
+
 
 ## Vectors
 
