@@ -69,7 +69,7 @@ Formulas can become quite complicated, and it can be easy to lose track of your 
 ((1 + 1) * (2 - 1))/(10 - 2)
 ```
 
-*Edit the chunk above so that the result is `2.875`.*  
+*Edit the chunk to remove the parenthesis around `10 - 2`.  What is the result?*  
 
 A better way to do such calculations, especially if you need to reuse the formula, is to create **objects** and perform the calculations stepwise.  To do this, we must create **objects** and **assign** value(s) to them.  
 
