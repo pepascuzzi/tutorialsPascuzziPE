@@ -8,13 +8,14 @@ output: learnr::tutorial
 ---
 
 ```{r setup, include=FALSE}
-ar_value <- scan("ar_value.txt", sep="\t")
-ar_study <- scan("ar_study.txt", what="character", sep="\t")
-ar_tissue <- scan("ar_tissue.txt", what="character", sep="\t")
-ar_tissue <- as.factor(ar_tissue)
 library(learnr)
 library(RColorBrewer)
 library(stringr)
+ar_value <- scan("ar_value.txt", sep="\t")
+ar_study <- scan("ar_study.txt", what="character", sep="\t")
+ar_study <- str_remove_all(ar_study, " \\(TCGA, Provisional\\)")
+ar_tissue <- scan("ar_tissue.txt", what="character", sep="\t")
+ar_tissue <- as.factor(ar_tissue)
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = FALSE)
 knitr::opts_chunk$set(fig.width=8)
@@ -81,7 +82,7 @@ ar_study
 
 You should see 30 **character** strings describing The Cancer Genome Atlas cancer studies.  Each string is preceded by an **integer** in square brackets.  This **integer** gives you the **index** or **position** for that **character** string in the **vector**.
 
-## Extracting Elements
+## Extracting Values by Position  
 
 The **square brackets**, `[]`, are the **extraction operator** for **R**. They allow you to extract specific values from **R objects**.  This is sometimes called **indexing**.  More properly, the process is called **extraction**, and you use **indices** to do this.  You can **extract** with several types of **indices** including by position, by name, or with **logical vectors** or **expressions**.  
 
@@ -145,6 +146,12 @@ You can **extract** values in any order that you wish.  In fact, this is one way
 ar_study[c(30, 20, 10, 1)]
 ```
 
+You can also extract the same value multiple times.  While this seems silly, it can have very practical applications later.  
+
+```{r q36b, exercise=TRUE, exercise.startover=TRUE}
+ar_study[c(10, 10, 1)]
+```
+
 Be careful when **extracting** data because you can try to **extract** data that does not exist! 
 
 ```{r q37, exercise=TRUE, exercise.startover=TRUE}
@@ -152,6 +159,36 @@ ar_study[50]
 ```
 
 This returns the special value, `NA`, for **Not Available** or missing values.  If `NAs` exist in your data, and they often do, you need to take special care of how they are treated.  
+
+## Extracting Values by Name  
+
+R objects have names and values, but they can also have **attributes**.  In addition to the name of the object, some R objects can have **names** for each element for value.  
+
+We can extract or set the **names** of a **vector** with the `names()` function.  
+
+```{r q37b, exercise=TRUE, exercise.startover=TRUE}
+names(ar_value)
+```
+
+The result `NULL` indicates that there are no names for the elements of this vector.  We can use `names()` again to set the values for the names.  In this case, we can use the study names in `ar_study`.  
+
+```{r q37c, exercise=TRUE, exercise.startover=TRUE}
+names(ar_value) <- ar_study
+head(ar_value)
+```
+
+```{r q37d-setup, include=FALSE}
+names(ar_value) <- ar_study
+```
+
+These are not particularly useful names because they are so long, but we can use them to extract values.  
+
+```{r q37d, exercise=TRUE, exercise.startover=TRUE, exercise.setup="q37d-setup"}
+study_index <- c("Acute Myeloid Leukemia", "Thymoma", "Mesothelioma")
+ar_value[study_index]
+```
+
+**Vectors** with **names** will appear again in the section on `tapply` below.  In addition, this idea of extracting with **names** will be very useful when working with **Ggplot2** to map colors to data values or creating heatmaps with **pheatmap**.  
 
 ## Character String Length
 
@@ -173,7 +210,7 @@ Determine the number of **characters** for every value in **ar_study**.
 nchar(ar_study)
 ```
 
-You should see 30 **integer** values ranging from 27 to 84. 
+You should see 30 **integer** values ranging from 7 to 64. 
 
 We will use `ar_study` again.  Let us move on to the other **objects**. 
 
@@ -263,7 +300,7 @@ dotchart(x=ar_value)
 
 At this point, this is plot is very similar to the previous plot.  The big difference is that the x and y axes are swapped.  In addition, dashed lines are included to help a viewer trace a point to its label on the y-axis.  However, we have no labels, yet.  
 
-We can use the **character strings** in `ar_study` as `labels`, but they need to be shorter.  We can use `substr` to create labels from the first 15 characters in each string.  In addition, we will add a `main` title to the plot.  
+We can use the **character strings** in `ar_study` as `labels`, but they need to be shorter.  We can use `str_sub` to create labels from the first 15 characters in each string.  In addition, we will add a `main` title to the plot.  
 
 ```{r q49, exercise=TRUE, exercise.startover=TRUE, fig.width=8, fig.height=8}
 ar_labels <- str_sub(ar_study, start=1, end=15)
