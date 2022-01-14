@@ -5,6 +5,8 @@ author:
   affiliation: Purdue University
 runtime: shiny_prerendered
 output: learnr::tutorial
+description: >
+  Learn how to create and extract data from vectors. Learn how to create indexing vectors. Use vectors to create data visualizations.  
 ---
 
 ```{r setup, include=FALSE}

@@ -247,7 +247,7 @@ head(ar_value)</code></pre>
 ar_value[study_index]</code></pre>
 <script type="application/json" data-opts-chunk="1">{"fig.width":8,"fig.height":8,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":768,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.setup":"q37d-setup","exercise.checker":"NULL"}</script>
 </div>
-<p>This idea of extracting with <strong>names</strong> will be very useful when working with <strong>Ggplot2</strong> to map colors to data values or creating heatmaps with <strong>pheatmap</strong>.</p>
+<p><strong>Vectors</strong> with <strong>names</strong> will appear again in the section on <code>tapply</code> below. In addition, this idea of extracting with <strong>names</strong> will be very useful when working with <strong>Ggplot2</strong> to map colors to data values or creating heatmaps with <strong>pheatmap</strong>.</p>
 </div>
 <div id="section-character-string-length" class="section level2">
 <h2>Character String Length</h2>
@@ -264,7 +264,7 @@ ar_value[study_index]</code></pre>
 <pre class="text"><code>nchar(ar_study)</code></pre>
 <script type="application/json" data-opts-chunk="1">{"fig.width":8,"fig.height":8,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":768,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
 </div>
-<p>You should see 30 <strong>integer</strong> values ranging from 27 to 84.</p>
+<p>You should see 30 <strong>integer</strong> values ranging from 7 to 64.</p>
 <p>We will use <code>ar_study</code> again. Let us move on to the other <strong>objects</strong>.</p>
 </div>
 <div id="section-numeric-vectors" class="section level2">
@@ -334,7 +334,7 @@ See the help menu for <code>dotchart</code> for more information.<br />
 <script type="application/json" data-opts-chunk="1">{"fig.width":8,"fig.height":8,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":768,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
 </div>
 <p>At this point, this is plot is very similar to the previous plot. The big difference is that the x and y axes are swapped. In addition, dashed lines are included to help a viewer trace a point to its label on the y-axis. However, we have no labels, yet.</p>
-<p>We can use the <strong>character strings</strong> in <code>ar_study</code> as <code>labels</code>, but they need to be shorter. We can use <code>substr</code> to create labels from the first 15 characters in each string. In addition, we will add a <code>main</code> title to the plot.</p>
+<p>We can use the <strong>character strings</strong> in <code>ar_study</code> as <code>labels</code>, but they need to be shorter. We can use <code>str_sub</code> to create labels from the first 15 characters in each string. In addition, we will add a <code>main</code> title to the plot.</p>
 <div class="tutorial-exercise" data-label="q49" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code>ar_labels &lt;- str_sub(ar_study, start=1, end=15)
 dotchart(x=ar_value, labels=ar_labels, main=&quot;AR Gene Expression&quot;, cex=0.8)</code></pre>
