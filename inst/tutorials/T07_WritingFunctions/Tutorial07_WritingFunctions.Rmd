@@ -43,13 +43,13 @@ This tutorial will demonstrate how to write a **function** that can be used to w
 
 The version 7 **GTEx** data for gene expression in transcripts per million (TPM). **GTEx** has many samples for each tissue, and these have been **grouped** and **summarized** to create a median TPM for each gene in each tissue.  There is more information at **GTEx** for how this data was produced.  
 
-The data was imported as a **tibble** when the tutorial was lauched.  Note that this file has both `gct` and `gz` extensions.  A `gct` file is a tab-delimited plain text file that contains results from a gene expression experiment.  The `gz` extension indicates that the file was compressed by **gzip** software to save disk space.  Even compressed, this is a large file (nearly 5 MB).  Fortunately, R can import the file without "unzipping" it.  
+The data was imported as a **tibble** when the tutorial was launched.  Note that this file has both `gct` and `gz` extensions.  A `gct` file is a tab-delimited plain text file that contains results from a gene expression experiment.  The `gz` extension indicates that the file was compressed by **gzip** software to save disk space.  Even compressed, this is a large file (nearly 5 MB).  Fortunately, R can import the file without "unzipping" it.  
 
 To read a large file quickly, it is important to use the `col_types` argument that indicates the **data type** for each column.  Additionally, the **character patterns** that should be imported as `NA` should be specified to speed the import.  Refer to **Tutorial 4** for more information.  
 
-The argument `skip=2` was required because the first two lines of the file contain information for specific software (an no consistent comment character was used).  
+The argument `skip=2` was required because the first two lines of the file contain information for specific software (and no consistent comment character was used).  
 
-The code used to originally import the data into R is shown below.  This chunk cannot be run.  
+The code used to originally import the data into R is shown below.  This chunk cannot be run.  Note, for the tutorial, the data is actually loaded as a **tibble** saved as an RData file.  
 
 ```{r eval=FALSE, echo=TRUE}
 my_coltypes <- c(rep("c", 2), rep("n", 53)) %>%
@@ -61,18 +61,18 @@ gtex_median <- read_delim("GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_median
                           na=c("", "NA", "na"))
 ```
 
-Use `slice` to display the first ten rows of the **tibble** to perform a visual check.  Note, if you try to display too many rows, the tutorial may crash!  
+Use `slice_head` or the base R equivalents `head` to display the first ten rows of the **tibble** to perform a visual check.  Note, if you try to display too many rows, the tutorial may crash!  
 
 ```{r chunk01a, exercise=TRUE, exercise.startover=TRUE}
 gtex_median %>%
-  slice(1:10)
+  slice_head(n=10) #or just head(10)
 ```
 
-For a large file, it can be important to examine the last rows of the data (use a negative integers with `slice`).  If the file is sorted in any way, unusual values may occur in these last rows.  
+For a large file, it can be important to examine the last rows of the data.  Use `slice_tail` or just `tail`.  If the file is sorted in any way, unusual values may occur in these last rows.  
 
 ```{r chunk01b, exercise=TRUE, exercise.startover=TRUE}
 gtex_median %>%
-  slice(-1:-10)
+  slice_tail(n=10) #or just tail(10)
 ```
 
 The data seems fine, but the column names are problematic because they have many special characters.  For example `Adipose - Visceral (Omentum)` has spaces, parentheses and a dash!  Other names are also inconsistent in the use of capital letters.  
@@ -159,11 +159,11 @@ bad_colname
 
 The error is difficult to interpret, but it is caused by the fact that parentheses are used for syntax in R.  To use them in a **character pattern**, the syntax must be "escaped" with a backslash, `\`.  However, backslashes are also used to create other **escape characters**.  
 
-**Escape characters** are used in computing to invoke an alternate intepretation for the character that follows, e.g. `\t` is not a small `t` but a `tab`.  **Escape characters** are analogous to the **control** key on your computer.  
+**Escape characters** are used in computing to invoke an alternate interpretation for the character that follows, e.g. `\t` is not a small `t` but a `tab`.  **Escape characters** are analogous to the **control** key on your computer.  
 
 If we precede the parenthesis with a backslash, `\(`, R will look for an alternate interpretation for the parenthesis.  However, there is no recognized **escape character**, `\(`, so you will get another error (try it in the chunk above).  
 
-To specify simply the parentheses character in a **character pattern**, you must precede it with two back slashes, `\\(`.  This "escapes" the normal intepretation of a parenthesis and "escapes" the **escape character** interpretation.  Many, but not all, special characters used in R syntax must be treated this way when used in character patterns.  
+To specify simply the parentheses character in a **character pattern**, you must precede it with two back slashes, `\\(`.  This "escapes" the normal interpretation of a parenthesis and "escapes" the **escape character** interpretation.  Many, but not all, special characters used in R syntax must be treated this way when used in character patterns.  
 
 ```{r chunk04c, exercise=TRUE, exercise.startover=TRUE, exercise.setup="prepare-prep02b"}
 bad_colname <- bad_colname %>% 
@@ -237,7 +237,7 @@ You use `function` to create a **function**.  There are several required compone
 3.  One or more **expressions** called the **body** of the function.  
 3.  A `value` that is returned.  
 
-Here is the generic syntax for a **function**.  Curly braces**, `{}`, are used to group the expressions of the function.  
+Here is the generic syntax for a **function**.  **Curly braces**, `{}`, are used to group the expressions of the function.  
 
 `function_name <- function(arglist){`  
       `expressions / body`  
